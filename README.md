@@ -1,36 +1,119 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pasapalabra - Control de Juego
 
-## Getting Started
+Consola de control para el juego Pasapalabra con generación de preguntas por IA usando OpenRouter.
 
-First, run the development server:
+## Características
+
+- 🎮 Control de juego para dos equipos (A y B)
+- ⏱️ Temporizadores independientes por equipo
+- ⌨️ Atajos de teclado para acciones rápidas
+- 🔊 Sonidos programáticos para feedback
+- 🤖 Generación de roscos personalizados con IA
+- 📱 Modo público (ocultar controles)
+- ↶ Sistema de deshacer (undo)
+
+## Requisitos
+
+- Node.js 18+
+- npm, yarn, pnpm o bun
+
+## Configuración
+
+1. Clona el repositorio:
+
+```bash
+git clone <repo-url>
+cd pasapalabra
+```
+
+2. Instala las dependencias:
+
+```bash
+npm install
+```
+
+3. Configura las variables de entorno:
+
+```bash
+cp .env.example .env
+```
+
+Edita `.env` y agrega tu API key de OpenRouter:
+
+```
+OPENROUTER_API_KEY=tu_api_key_aqui
+```
+
+Puedes obtener una API key en [OpenRouter](https://openrouter.ai/).
+
+4. (Opcional) Configura un modelo diferente:
+
+```
+OPENROUTER_MODEL=openai/gpt-4o-mini
+```
+
+## Ejecución
+
+Inicia el servidor de desarrollo:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Atajos de Teclado
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `Espacio`: Pausar/Reanudar reloj
+- `S`: Marcar como correcto
+- `N`: Marcar como incorrecto
+- `P`: Pasapalabra (saltar)
+- `Z` o `Backspace`: Deshacer última acción
 
-## Learn More
+## Estructura del Proyecto
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+├── app/                    # Next.js App Router
+│   ├── api/               # API routes
+│   │   └── roscos.generate/ # Generación de roscos con IA
+│   ├── layout.tsx         # Layout principal
+│   └── page.tsx           # Página principal
+├── components/             # Componentes React
+│   ├── HeaderBar.tsx
+│   ├── RoscoCircle.tsx
+│   ├── ControlPanel.tsx
+│   └── GeneratorModal.tsx
+├── game/                  # Lógica del juego
+│   ├── types.ts          # Tipos TypeScript
+│   ├── defaultQuestions.ts
+│   ├── validation.ts
+│   ├── sound.ts
+│   └── usePasapalabraGame.ts # Hook principal
+└── server/               # Código del servidor
+    └── ai/               # Integración con IA
+        ├── openrouter.ts
+        └── schemas.ts
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Tecnologías
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Next.js 15** - Framework React
+- **TypeScript** - Tipado estático
+- **Tailwind CSS** - Estilos
+- **Vercel AI SDK** - Integración con modelos de IA
+- **OpenRouter** - Proveedor de modelos de IA
+- **Zod** - Validación de esquemas
+- **Lucide React** - Iconos
 
-## Deploy on Vercel
+## Despliegue
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+El proyecto está listo para desplegar en Vercel:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=<repo-url>)
+
+Asegúrate de configurar la variable de entorno `OPENROUTER_API_KEY` en tu plataforma de despliegue.
+
+## Licencia
+
+MIT

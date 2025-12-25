@@ -1,0 +1,83 @@
+{
+  "roscoA": [
+    {
+      "letter": "A",
+      "answer": "Abuelo",
+      "description": "Padre del padre o de la madre.",
+      "condition": "Empieza por A"
+    },
+    {
+      "letter": "B",
+      "answer": "Biberón",
+      "description": "Botella con tetina para la lactancia artificial.",
+      "condition": "Empieza por B"
+    },
+    {
+      "letter": "K",
+      "answer": "Kilo",
+      "description": "Unidad de masa del Sistema Internacional.",
+      "condition": "Empieza por K"
+    },
+    {
+      "letter": "Ñ",
+      "answer": "Ñu",
+      "description": "Mamífero rumiante africano de la familia de los antílopes.",
+      "condition": "Contiene la Ñ"
+    },
+    {
+      "letter": "W",
+      "answer": "Web",
+      "description": "Red informática.",
+      "condition": "Contiene la W"
+    },
+    {
+      "letter": "X",
+      "answer": "Xilófono",
+      "description": "Instrumento musical de percusión.",
+      "condition": "Empieza por X"
+    }
+    // ... debe continuar con las 21 letras restantes (C, D, E, F, G, H, I, J, L, M, N, O, P, Q, R, S, T, U, V, Y, Z)
+    // Total: 27 objetos en roscoA
+  ],
+  "roscoB": [
+    {
+      "letter": "A",
+      "answer": "Amigo",
+      "description": "Que tiene amistad.",
+      "condition": "Empieza por A"
+    },
+    {
+      "letter": "B",
+      "answer": "Balón",
+      "description": "Pelota grande usada en diversos deportes.",
+      "condition": "Empieza por B"
+    },
+    {
+      "letter": "K",
+      "answer": "Karate",
+      "description": "Modalidad de lucha japonesa.",
+      "condition": "Empieza por K"
+    },
+    {
+      "letter": "Ñ",
+      "answer": "Caña",
+      "description": "Tallo de las plantas gramíneas.",
+      "condition": "Contiene la Ñ"
+    },
+    {
+      "letter": "W",
+      "answer": "Whisky",
+      "description": "Bebida alcohólica obtenida por destilación.",
+      "condition": "Contiene la W"
+    },
+    {
+      "letter": "X",
+      "answer": "Xenofobia",
+      "description": "Fobia a los extranjeros.",
+      "condition": "Empieza por X"
+    }
+    // ... debe continuar con las 21 letras restantes (C, D, E, F, G, H, I, J, L, M, N, O, P, Q, R, S, T, U, V, Y, Z)
+    // Total: 27 objetos en roscoB
+  ]
+}
+
