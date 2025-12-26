@@ -17,6 +17,7 @@ export default function Home() {
     currentIndexB,
     gameStarted,
     winner,
+    winningReason,
     isPanelCollapsed,
     soundEnabled,
     timeLeftA,
@@ -25,9 +26,11 @@ export default function Home() {
     prevGameState,
     currentLetterData,
     isCurrentDataValid,
+    playerNames,
     setIsPanelCollapsed,
     setSoundEnabled,
     setIsPaused,
+    setPlayerNames,
     handleAction,
     handleUndo,
     resetGame,
@@ -35,7 +38,7 @@ export default function Home() {
   } = usePasapalabraGame();
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col">
+    <div className="h-screen gradient-bg font-[family-name:var(--font-nunito)] flex flex-col">
       <HeaderBar
         gameStarted={gameStarted}
         soundEnabled={soundEnabled}
@@ -44,8 +47,9 @@ export default function Home() {
         onReset={resetGame}
       />
 
-      <main className="flex-1 flex flex-col overflow-hidden relative">
-        <section className="flex-1 bg-slate-100 p-8 flex flex-col md:flex-row items-center justify-center gap-12 overflow-y-auto relative">
+      <main className="flex-1 flex flex-col relative min-h-0">
+        {/* Rosco container - no overflow clipping to allow spring overshoot */}
+        <section className="flex-1 relative min-h-0">
           <RoscoCircle
             data={roscoA}
             active={activePlayer === 'A'}
@@ -53,6 +57,9 @@ export default function Home() {
             playerId="A"
             isPublicMode={isPanelCollapsed}
             time={timeLeftA}
+            playerName={playerNames.A}
+            onPlayerNameChange={(name) => setPlayerNames({ ...playerNames, A: name })}
+            hasWinner={!!winner}
           />
           <RoscoCircle
             data={roscoB}
@@ -61,6 +68,9 @@ export default function Home() {
             playerId="B"
             isPublicMode={isPanelCollapsed}
             time={timeLeftB}
+            playerName={playerNames.B}
+            onPlayerNameChange={(name) => setPlayerNames({ ...playerNames, B: name })}
+            hasWinner={!!winner}
           />
         </section>
 
@@ -68,12 +78,13 @@ export default function Home() {
           isCollapsed={isPanelCollapsed}
           onToggleCollapse={() => setIsPanelCollapsed(!isPanelCollapsed)}
           winner={winner}
+          winningReason={winningReason}
           gameStarted={gameStarted}
-          activePlayer={activePlayer}
           currentLetterData={currentLetterData}
           isCurrentDataValid={isCurrentDataValid}
           isPaused={isPaused}
           prevGameState={prevGameState}
+          playerNames={playerNames}
           onPauseToggle={() => setIsPaused(!isPaused)}
           onUndo={handleUndo}
           onAction={handleAction}

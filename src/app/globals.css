@@ -1,26 +1,269 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Deep space dark theme */
+  --background: #0c0a1d;
+  --foreground: #f0f0f5;
+  
+  /* Primary: Electric blue */
+  --primary: #3b82f6;
+  --primary-glow: rgba(59, 130, 246, 0.4);
+  
+  /* Secondary: Coral orange */
+  --secondary: #f97316;
+  --secondary-glow: rgba(249, 115, 22, 0.4);
+  
+  /* Accent: Magenta pink */
+  --accent: #ec4899;
+  --accent-glow: rgba(236, 72, 153, 0.3);
+  
+  /* Game states */
+  --correct: #22c55e;
+  --correct-glow: rgba(34, 197, 94, 0.5);
+  --incorrect: #ef4444;
+  --incorrect-glow: rgba(239, 68, 68, 0.5);
+  --skipped: #6b7280;
+  --pending: #3b82f6;
+  
+  /* Surfaces */
+  --surface-1: #151228;
+  --surface-2: #1e1a36;
+  --surface-3: #2a2449;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-bright: rgba(255, 255, 255, 0.15);
+  
+  /* Rosco sizing - responsive */
+  --rosco-size: min(400px, 85vw, 50vh);
+  --rosco-offset: min(230px, 30vw);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-correct: var(--correct);
+  --color-incorrect: var(--incorrect);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --font-display: var(--font-fredoka);
+  --font-body: var(--font-nunito);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+/* Gradient background pattern */
+.gradient-bg {
+  background: 
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.15), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 50%, rgba(249, 115, 22, 0.1), transparent),
+    radial-gradient(ellipse 60% 40% at 0% 50%, rgba(59, 130, 246, 0.1), transparent),
+    var(--background);
+}
+
+/* Glow effects */
+.glow-blue {
+  box-shadow: 0 0 20px var(--primary-glow), 0 0 40px var(--primary-glow);
+}
+
+.glow-orange {
+  box-shadow: 0 0 20px var(--secondary-glow), 0 0 40px var(--secondary-glow);
+}
+
+.glow-correct {
+  box-shadow: 0 0 15px var(--correct-glow), 0 0 30px var(--correct-glow);
+}
+
+.glow-incorrect {
+  box-shadow: 0 0 15px var(--incorrect-glow), 0 0 30px var(--incorrect-glow);
+}
+
+/* Letter pulsing animation for current letter */
+@keyframes letter-pulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.7);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.15);
+    box-shadow: 0 0 20px 8px rgba(250, 204, 21, 0);
+  }
+}
+
+.letter-active {
+  animation: letter-pulse 1.2s ease-in-out infinite;
+}
+
+/* Rosco ring glow animation */
+@keyframes ring-glow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.ring-glow-active {
+  animation: ring-glow 2s ease-in-out infinite;
+}
+
+/* Floating animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Success confetti burst */
+@keyframes burst {
+  0% { transform: scale(0); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+/* Slide up animation */
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.4s ease-out forwards;
+}
+
+/* Stagger delays for rosco letters */
+.stagger-1 { animation-delay: 0.02s; }
+.stagger-2 { animation-delay: 0.04s; }
+.stagger-3 { animation-delay: 0.06s; }
+.stagger-4 { animation-delay: 0.08s; }
+.stagger-5 { animation-delay: 0.1s; }
+
+/* Glass morphism */
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+}
+
+.glass-light {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-bright);
+}
+
+/* Timer urgency states */
+@keyframes timer-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.timer-normal {
+  color: var(--foreground);
+}
+
+.timer-warning {
+  color: #fbbf24;
+  animation: timer-pulse 0.8s ease-in-out infinite;
+}
+
+.timer-critical {
+  color: var(--incorrect);
+  animation: timer-pulse 0.4s ease-in-out infinite;
+}
+
+/* Smooth button press */
+.btn-press {
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.btn-press:active {
+  transform: scale(0.95);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface-1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--surface-3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Rosco transition for centering */
+.rosco-transition {
+  transition: 
+    transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.5s ease-out,
+    filter 0.5s ease-out,
+    scale 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Public mode / Winner - side by side on desktop, stacked on mobile */
+.rosco-public {
+  position: absolute;
+  transition: left 0.4s, top 0.4s, transform 0.4s, opacity 0.3s ease-out, filter 0.3s ease-out;
+}
+
+/* Mobile: stack vertically */
+@media (max-width: 767px) {
+  .rosco-public {
+    left: 50% !important;
+    transform: translate(-50%, -50%) scale(0.7) !important;
+  }
+  .rosco-public-a { top: 35% !important; }
+  .rosco-public-b { top: 75% !important; }
+}
+
+/* Desktop: side by side */
+@media (min-width: 768px) {
+  .rosco-public {
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+  }
+  .rosco-public-a { left: calc(50% - var(--rosco-offset)) !important; }
+  .rosco-public-b { left: calc(50% + var(--rosco-offset)) !important; }
+}
+
+/* Rosco ring sizing - responsive */
+.rosco-ring {
+  width: var(--rosco-size);
+  height: var(--rosco-size);
+}
+
+/* Rosco letter sizing - responsive */
+.rosco-letter {
+  width: clamp(1.75rem, 8%, 2.5rem);
+  height: clamp(1.75rem, 8%, 2.5rem);
+}
+
+/* Focus ring */
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Selection */
+::selection {
+  background: var(--primary);
+  color: white;
 }

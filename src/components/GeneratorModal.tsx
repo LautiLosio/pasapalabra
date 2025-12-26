@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Sparkles, XCircle, Loader2 } from 'lucide-react';
+import { Sparkles, X, Loader2, Wand2, AlertCircle } from 'lucide-react';
 import { Question } from '@/game/types';
 
 interface GeneratorModalProps {
@@ -17,8 +17,6 @@ export const GeneratorModal = ({ isOpen, onClose, onGenerate }: GeneratorModalPr
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const handleGenerate = async () => {
-    if (!theme.trim() && !window.confirm('¿Generar sin tema específico (Aleatorio)?')) return;
-
     setIsGenerating(true);
     setErrorMsg(null);
 
@@ -53,7 +51,7 @@ export const GeneratorModal = ({ isOpen, onClose, onGenerate }: GeneratorModalPr
     } catch (e) {
       const error = e instanceof Error ? e.message : 'Error al generar';
       console.error(e);
-      setErrorMsg(`Error al generar: ${error}`);
+      setErrorMsg(`Error: ${error}`);
     } finally {
       setIsGenerating(false);
     }
@@ -62,73 +60,122 @@ export const GeneratorModal = ({ isOpen, onClose, onGenerate }: GeneratorModalPr
   if (!isOpen) return null;
 
   return (
-    <div className="absolute inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+      <div 
+        className="
+          glass-light w-full max-w-md rounded-3xl p-6 
+          shadow-2xl shadow-purple-500/10
+          animate-slide-up
+        "
+      >
+        {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-2 text-purple-600">
-            <Sparkles className="fill-purple-100" />
-            <h2 className="text-xl font-bold">Generador de Roscos</h2>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+              <Wand2 size={20} className="text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl font-[family-name:var(--font-fredoka)] font-bold text-white">
+                Generador IA
+              </h2>
+              <p className="text-xs text-white/40">Crea nuevos roscos con inteligencia artificial</p>
+            </div>
           </div>
           <button
             onClick={() => !isGenerating && onClose()}
-            className="text-slate-400 hover:text-slate-600"
+            className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/15 flex items-center justify-center text-white/60 hover:text-white transition-colors"
           >
-            <XCircle />
+            <X size={18} />
           </button>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-5">
+          {/* Theme input */}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
-              Temática (Opcional)
+            <label className="block text-sm font-semibold text-white/80 mb-2">
+              Temática <span className="text-white/40 font-normal">(Opcional)</span>
             </label>
             <input
               type="text"
-              placeholder="Ej: CULTURA GENERAL, COCINA, TECNOLOGÍA..."
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition-all"
+              placeholder="Ej: Cine, Deportes, Historia de España..."
+              className="
+                w-full px-4 py-3.5 rounded-xl 
+                bg-white/5 border border-white/10
+                text-white placeholder:text-white/30
+                focus:border-purple-500/50 focus:bg-white/10
+                outline-none transition-all
+              "
               value={theme}
               onChange={e => setTheme(e.target.value)}
               disabled={isGenerating}
             />
-            <p className="text-xs text-slate-400 mt-2">
-              Si lo dejas vacío, se generarán preguntas de cultura general aleatorias.
+            <p className="text-xs text-white/30 mt-2">
+              Si lo dejas vacío, se generarán preguntas de cultura general.
             </p>
           </div>
 
+          {/* Difficulty select */}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
+            <label className="block text-sm font-semibold text-white/80 mb-2">
               Nivel de Dificultad
             </label>
-            <select
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition-all"
-              value={difficulty}
-              onChange={e => setDifficulty(e.target.value)}
-              disabled={isGenerating}
-            >
-              <option value="FÁCIL">FÁCIL</option>
-              <option value="MEDIO">MEDIO</option>
-              <option value="EXPERTO">EXPERTO</option>
-            </select>
+            <div className="grid grid-cols-3 gap-2">
+              {['FÁCIL', 'MEDIO', 'EXPERTO'].map((level) => (
+                <button
+                  key={level}
+                  type="button"
+                  onClick={() => setDifficulty(level)}
+                  disabled={isGenerating}
+                  className={`
+                    py-3 rounded-xl text-sm font-bold transition-all btn-press
+                    ${difficulty === level
+                      ? level === 'FÁCIL'
+                        ? 'bg-green-500/20 text-green-400 border-2 border-green-500/50'
+                        : level === 'MEDIO'
+                        ? 'bg-yellow-500/20 text-yellow-400 border-2 border-yellow-500/50'
+                        : 'bg-red-500/20 text-red-400 border-2 border-red-500/50'
+                      : 'bg-white/5 text-white/50 border-2 border-transparent hover:bg-white/10'
+                    }
+                  `}
+                >
+                  {level}
+                </button>
+              ))}
+            </div>
           </div>
 
+          {/* Error message */}
           {errorMsg && (
-            <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm flex items-center gap-2">
-              <XCircle size={16} /> {errorMsg}
+            <div className="bg-red-500/20 border border-red-500/30 text-red-400 p-4 rounded-xl text-sm flex items-start gap-3">
+              <AlertCircle size={18} className="flex-shrink-0 mt-0.5" />
+              <span>{errorMsg}</span>
             </div>
           )}
 
+          {/* Generate button */}
           <button
             onClick={handleGenerate}
             disabled={isGenerating}
-            className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-purple-300 text-white font-bold py-4 rounded-xl shadow-lg shadow-purple-200 transition-all flex items-center justify-center gap-2 mt-4"
+            className="
+              w-full py-4 rounded-xl font-bold text-white
+              bg-gradient-to-r from-purple-600 to-pink-600 
+              hover:from-purple-500 hover:to-pink-500
+              disabled:from-purple-600/50 disabled:to-pink-600/50 disabled:cursor-not-allowed
+              shadow-lg shadow-purple-500/30
+              transition-all btn-press
+              flex items-center justify-center gap-2
+            "
           >
             {isGenerating ? (
               <>
-                <Loader2 className="animate-spin" />
-                Generando Preguntas con IA...
+                <Loader2 className="animate-spin" size={20} />
+                Generando preguntas...
               </>
             ) : (
-              'Crear Partida Nueva'
+              <>
+                <Sparkles size={20} />
+                Crear Partida Nueva
+              </>
             )}
           </button>
         </div>
@@ -136,4 +183,3 @@ export const GeneratorModal = ({ isOpen, onClose, onGenerate }: GeneratorModalPr
     </div>
   );
 };
-

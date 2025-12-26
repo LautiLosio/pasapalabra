@@ -46,6 +46,8 @@ Cada rosco debe contener exactamente 27 objetos (De la A a la Z, incluyendo la �
 
 El orden debe ser alfabético.
 
+IMPORTANTE - Unicidad entre Roscos: roscoA y roscoB deben tener palabras completamente diferentes. NO puede haber ninguna palabra compartida entre los dos roscos. Cada palabra respuesta debe ser única y exclusiva de su rosco correspondiente. Verifica que no existan duplicados entre roscoA y roscoB.
+
 Formato de Salida (Estricto): Devuelve únicamente un objeto JSON válido. No añadas texto introductorio ni explicaciones fuera del JSON. Usa exactamente este esquema:
 
 {

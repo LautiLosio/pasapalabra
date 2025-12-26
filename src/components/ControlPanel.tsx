@@ -1,16 +1,17 @@
-import { Check, X, SkipForward, Trophy, ChevronDown, ChevronUp, Pause, Play, Undo2, AlertTriangle } from 'lucide-react';
+import { Check, X, SkipForward, Trophy, ChevronDown, ChevronUp, Pause, Play, Undo2, AlertTriangle, Sparkles } from 'lucide-react';
 import { Question } from '@/game/types';
 
 interface ControlPanelProps {
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   winner: string | null;
+  winningReason: string | null;
   gameStarted: boolean;
-  activePlayer: 'A' | 'B';
   currentLetterData: Question;
   isCurrentDataValid: boolean;
   isPaused: boolean;
   prevGameState: unknown;
+  playerNames: { A: string; B: string };
   onPauseToggle: () => void;
   onUndo: () => void;
   onAction: (action: 'correct' | 'incorrect' | 'pasapalabra') => void;
@@ -21,12 +22,13 @@ export const ControlPanel = ({
   isCollapsed,
   onToggleCollapse,
   winner,
+  winningReason,
   gameStarted,
-  activePlayer,
   currentLetterData,
   isCurrentDataValid,
   isPaused,
   prevGameState,
+  playerNames,
   onPauseToggle,
   onUndo,
   onAction,
@@ -35,13 +37,22 @@ export const ControlPanel = ({
   return (
     <section
       className={`
-        w-full bg-white border-t border-slate-200 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] z-10 flex-shrink-0 relative transition-all duration-300 ease-in-out
+        w-full glass border-t border-border z-10 flex-shrink-0 relative 
+        transition-all duration-300 ease-in-out
         ${isCollapsed ? 'h-0 border-t-0' : 'h-auto'}
       `}
     >
+      {/* Toggle button */}
       <button
         onClick={onToggleCollapse}
-        className="absolute -top-10 right-8 bg-white text-slate-600 px-4 py-2 rounded-t-xl border-t border-x border-slate-200 font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] hover:bg-slate-50 transition-colors z-20"
+        className="
+          absolute -top-10 right-4 md:right-8 
+          glass-light px-4 py-2 rounded-t-xl 
+          font-semibold text-xs uppercase tracking-wider 
+          flex items-center gap-2 
+          text-white/60 hover:text-white
+          transition-colors z-20
+        "
       >
         {isCollapsed ? (
           <>
@@ -49,7 +60,7 @@ export const ControlPanel = ({
           </>
         ) : (
           <>
-            <ChevronDown size={16} /> Ocultar (Modo Público)
+            <ChevronDown size={16} /> Ocultar
           </>
         )}
       </button>
@@ -59,139 +70,192 @@ export const ControlPanel = ({
           isCollapsed ? 'opacity-0 invisible' : 'opacity-100 visible'
         }`}
       >
-        <div className="max-w-7xl mx-auto p-4 md:p-6 w-full">
+        <div className="max-w-6xl mx-auto px-3 py-2 md:p-4 w-full">
           {winner ? (
-            <div className="flex items-center justify-center gap-8 animate-in slide-in-from-bottom duration-500">
-              <Trophy size={48} className="text-yellow-500" />
-              <div className="text-center md:text-left">
-                <h2 className="text-2xl font-bold text-slate-800">¡Juego Terminado!</h2>
-                <p className="text-lg text-slate-500">
-                  Ganador: <span className="text-blue-600 font-bold">{winner}</span>
-                </p>
+            // Winner state - stacks on mobile
+            <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 animate-slide-up py-3 md:py-4">
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <Trophy size={40} className="text-yellow-400 md:w-14 md:h-14" />
+                  <div className="absolute inset-0 blur-xl bg-yellow-400/30" />
+                </div>
+                <div className="text-center md:text-left">
+                  <h2 className="text-xl md:text-3xl font-[family-name:var(--font-fredoka)] font-bold text-white">
+                    ¡Juego Terminado!
+                  </h2>
+                  <p className="text-base md:text-lg text-white/60">
+                    Ganador:{' '}
+                    <span className={`font-bold ${winner === playerNames.A ? 'text-blue-400' : winner === playerNames.B ? 'text-orange-400' : ''}`}>
+                      {winner}
+                    </span>
+                  </p>
+                  {winningReason && (
+                    <p className="text-xs md:text-sm text-white/50 mt-1">
+                      {winningReason}
+                    </p>
+                  )}
+                </div>
               </div>
               <button
                 onClick={onReset}
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-blue-700 transition"
+                className="
+                  bg-gradient-to-r from-blue-500 to-purple-500 
+                  hover:from-blue-400 hover:to-purple-400
+                  text-white px-5 py-2.5 md:px-6 md:py-3 rounded-xl font-bold text-sm md:text-base
+                  shadow-lg shadow-blue-500/30 transition-all btn-press
+                  flex items-center gap-2
+                "
               >
-                Nueva Partida
+                <Sparkles size={18} /> Nueva Partida
               </button>
             </div>
           ) : !gameStarted ? (
-            <div className="text-center text-slate-400 py-4">
-              <p>Presiona "Iniciar" en la barra superior para comenzar.</p>
+            // Not started state
+            <div className="text-center text-white/40 py-6 animate-slide-up">
+              <p className="text-lg">Presiona <span className="text-green-400 font-semibold">Iniciar</span> para comenzar la partida</p>
             </div>
           ) : (
-            <div className="flex flex-col md:flex-row items-center gap-6 justify-between">
-              <div className="flex items-center gap-4 flex-shrink-0">
-                <div className="flex flex-col items-center">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                        activePlayer === 'A'
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'bg-orange-100 text-orange-700'
-                      }`}
-                    >
-                      Turno {activePlayer}
-                    </span>
-                    <div className="flex gap-1">
-                      <button
-                        onClick={onUndo}
-                        disabled={!prevGameState}
-                        className={`w-6 h-6 flex items-center justify-center rounded-full transition-colors ${
-                          prevGameState
-                            ? 'bg-yellow-100 text-yellow-600 hover:bg-yellow-200'
-                            : 'bg-slate-100 text-slate-300'
-                        }`}
-                        title="Deshacer última acción (Z)"
-                      >
-                        <Undo2 size={12} strokeWidth={3} />
-                      </button>
-                      <button
-                        onClick={onPauseToggle}
-                        className={`w-6 h-6 flex items-center justify-center rounded-full transition-colors ${
-                          isPaused
-                            ? 'bg-green-100 text-green-600 hover:bg-green-200'
-                            : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
-                        }`}
-                        title={isPaused ? 'Reanudar Reloj (Espacio)' : 'Pausar Reloj (Espacio)'}
-                      >
-                        {isPaused ? (
-                          <Play size={12} fill="currentColor" />
-                        ) : (
-                          <Pause size={12} fill="currentColor" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                  <div className="w-16 h-16 rounded-full bg-slate-900 text-white flex items-center justify-center text-3xl font-bold shadow-md border-2 border-slate-200">
-                    {currentLetterData.letter}
-                  </div>
-                </div>
+            // Active game state - vertical on mobile, horizontal on desktop
+            <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4 animate-slide-up">
+              {/* Desktop: Left utility buttons */}
+              <div className="hidden md:flex flex-col gap-1.5 flex-shrink-0">
+                <button
+                  onClick={onPauseToggle}
+                  className={`
+                    w-10 h-10 flex items-center justify-center rounded-lg transition-all btn-press border
+                    ${isPaused
+                      ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30 border-green-500/30'
+                      : 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border-amber-500/30'
+                    }
+                  `}
+                  title={isPaused ? 'Reanudar (Espacio)' : 'Pausar (Espacio)'}
+                >
+                  {isPaused ? <Play size={20} fill="currentColor" /> : <Pause size={20} fill="currentColor" />}
+                </button>
+                <button
+                  onClick={onUndo}
+                  disabled={!prevGameState}
+                  className={`
+                    w-10 h-10 flex items-center justify-center rounded-lg transition-all btn-press
+                    ${prevGameState
+                      ? 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 border border-yellow-500/30'
+                      : 'bg-white/5 text-white/20 border border-white/10'
+                    }
+                  `}
+                  title="Deshacer (Z)"
+                >
+                  <Undo2 size={18} strokeWidth={2.5} />
+                </button>
               </div>
 
-              <div className="flex-1 w-full md:w-auto relative group">
-                <div className="bg-slate-50 px-6 py-3 rounded-xl border border-slate-200 flex flex-col justify-center h-full min-h-[110px]">
-                  <div className="mb-1 flex items-center gap-2">
+              {/* Question card - full width on mobile, flex-1 on desktop */}
+              <div className="flex-1 order-1 md:order-none">
+                <div className="glass-light rounded-xl px-3 py-2 md:px-4 md:py-3 min-h-[80px] md:h-[100px] flex flex-col justify-between overflow-hidden">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span
-                      className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${
-                        currentLetterData.condition?.includes('Contiene')
-                          ? 'bg-orange-50 text-orange-600 border-orange-100'
-                          : 'bg-blue-50 text-blue-600 border-blue-100'
-                      }`}
+                      className={`
+                        text-[10px] font-bold uppercase px-2 py-0.5 rounded-md border
+                        ${currentLetterData.condition?.includes('Contiene')
+                          ? 'bg-orange-500/20 text-orange-400 border-orange-500/30'
+                          : 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+                        }
+                      `}
                     >
                       {currentLetterData.condition || `Empieza por ${currentLetterData.letter}`}
                     </span>
                     {!isCurrentDataValid && (
-                      <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded border bg-red-100 text-red-600 border-red-200 flex items-center gap-1 animate-pulse">
-                        <AlertTriangle size={10} /> Error en generación IA
+                      <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-red-500/20 text-red-400 border border-red-500/30 flex items-center gap-1 animate-pulse">
+                        <AlertTriangle size={10} /> Error IA
                       </span>
                     )}
                   </div>
-                  <p className="text-lg md:text-xl font-medium text-slate-800 leading-snug">
+                  <p className="text-sm md:text-lg font-medium text-white leading-snug line-clamp-2 my-1">
                     {currentLetterData.description}
                   </p>
-                  <div className="mt-2 pt-2 border-t border-slate-200 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold text-red-400 uppercase">Respuesta:</span>
-                      <span
-                        className={`text-lg font-bold tracking-tight ${
-                          !isCurrentDataValid
-                            ? 'text-red-500 decoration-wavy underline'
-                            : 'text-slate-900'
-                        }`}
-                      >
-                        {currentLetterData.answer}
-                      </span>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-red-400/80 uppercase tracking-wide">Respuesta:</span>
+                    <span className={`text-sm md:text-base font-bold tracking-tight ${!isCurrentDataValid ? 'text-red-400 decoration-wavy underline' : 'text-white'}`}>
+                      {currentLetterData.answer}
+                    </span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex-shrink-0 w-full md:w-auto flex justify-center md:justify-end">
-                <div className="grid grid-cols-2 gap-2 w-full max-w-[200px] md:w-40">
-                  <button
-                    onClick={() => onAction('correct')}
-                    className="col-span-2 h-14 bg-green-500 hover:bg-green-600 active:scale-95 text-white rounded-lg shadow-md shadow-green-100 transition-all flex items-center justify-center"
-                    title="Atajo: S"
-                  >
-                    <Check size={32} strokeWidth={3} />
-                  </button>
-                  <button
-                    onClick={() => onAction('incorrect')}
-                    className="h-14 bg-red-500 hover:bg-red-600 active:scale-95 text-white rounded-lg shadow-md shadow-red-100 transition-all flex items-center justify-center"
-                    title="Atajo: N"
-                  >
-                    <X size={28} strokeWidth={3} />
-                  </button>
-                  <button
-                    onClick={() => onAction('pasapalabra')}
-                    className="h-14 bg-slate-400 hover:bg-slate-500 active:scale-95 text-white rounded-lg shadow-md shadow-slate-200 transition-all flex items-center justify-center"
-                    title="Atajo: P"
-                  >
-                    <SkipForward size={28} strokeWidth={3} />
-                  </button>
-                </div>
+              {/* Desktop: Right action buttons in grid */}
+              <div className="hidden md:grid grid-cols-2 gap-1.5 flex-shrink-0 w-32">
+                <button
+                  onClick={() => onAction('correct')}
+                  className="col-span-2 h-11 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white rounded-lg shadow-lg shadow-green-500/30 transition-all btn-press flex items-center justify-center"
+                  title="Acierto (S)"
+                >
+                  <Check size={26} strokeWidth={3} />
+                </button>
+                <button
+                  onClick={() => onAction('incorrect')}
+                  className="h-11 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-400 hover:to-rose-400 text-white rounded-lg shadow-lg shadow-red-500/30 transition-all btn-press flex items-center justify-center"
+                  title="Fallo (N)"
+                >
+                  <X size={22} strokeWidth={3} />
+                </button>
+                <button
+                  onClick={() => onAction('pasapalabra')}
+                  className="h-11 bg-white/10 hover:bg-white/15 text-white/80 hover:text-white rounded-lg border border-white/10 transition-all btn-press flex items-center justify-center"
+                  title="Pasapalabra (P)"
+                >
+                  <SkipForward size={22} strokeWidth={2.5} />
+                </button>
+              </div>
+
+              {/* Mobile: All controls in one row */}
+              <div className="flex md:hidden items-center gap-2 order-2 justify-center">
+                <button
+                  onClick={onPauseToggle}
+                  className={`
+                    w-11 h-14 flex items-center justify-center rounded-xl transition-all btn-press border flex-shrink-0
+                    ${isPaused
+                      ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30 border-green-500/30'
+                      : 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border-amber-500/30'
+                    }
+                  `}
+                  title={isPaused ? 'Reanudar' : 'Pausar'}
+                >
+                  {isPaused ? <Play size={22} fill="currentColor" /> : <Pause size={22} fill="currentColor" />}
+                </button>
+                <button
+                  onClick={onUndo}
+                  disabled={!prevGameState}
+                  className={`
+                    w-11 h-14 flex items-center justify-center rounded-xl transition-all btn-press flex-shrink-0
+                    ${prevGameState
+                      ? 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 border border-yellow-500/30'
+                      : 'bg-white/5 text-white/20 border border-white/10'
+                    }
+                  `}
+                  title="Deshacer"
+                >
+                  <Undo2 size={18} strokeWidth={2.5} />
+                </button>
+                <button
+                  onClick={() => onAction('correct')}
+                  className="flex-1 h-14 max-w-[100px] bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white rounded-xl shadow-lg shadow-green-500/30 transition-all btn-press flex items-center justify-center"
+                  title="Acierto"
+                >
+                  <Check size={30} strokeWidth={3} />
+                </button>
+                <button
+                  onClick={() => onAction('incorrect')}
+                  className="flex-1 h-14 max-w-[100px] bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-400 hover:to-rose-400 text-white rounded-xl shadow-lg shadow-red-500/30 transition-all btn-press flex items-center justify-center"
+                  title="Fallo"
+                >
+                  <X size={26} strokeWidth={3} />
+                </button>
+                <button
+                  onClick={() => onAction('pasapalabra')}
+                  className="flex-1 h-14 max-w-[100px] bg-white/10 hover:bg-white/15 text-white/80 hover:text-white rounded-xl border border-white/10 transition-all btn-press flex items-center justify-center"
+                  title="Pasapalabra"
+                >
+                  <SkipForward size={26} strokeWidth={2.5} />
+                </button>
               </div>
             </div>
           )}
@@ -200,4 +264,3 @@ export const ControlPanel = ({
     </section>
   );
 };
-

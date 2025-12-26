@@ -48,6 +48,11 @@ export const usePasapalabraGame = () => {
   const [timeLeftB, setTimeLeftB] = useState(INITIAL_TIME);
   const [isPaused, setIsPaused] = useState(true);
   const [prevGameState, setPrevGameState] = useState<GameState | null>(null);
+  const [playerNames, setPlayerNames] = useState<{ A: string; B: string }>({
+    A: 'Jugador A',
+    B: 'Jugador B',
+  });
+  const [winningReason, setWinningReason] = useState<string | null>(null);
 
   const currentRosco = activePlayer === 'A' ? roscoA : roscoB;
   const currentIndex = activePlayer === 'A' ? currentIndexA : currentIndexB;
@@ -58,15 +63,50 @@ export const usePasapalabraGame = () => {
     const isFinished1 = findNextIndex(rosco1, 0) === -1;
     const isFinished2 = findNextIndex(rosco2, 0) === -1;
     if (isFinished1 && isFinished2) {
-      const scoreA = roscoA.filter(r => r.status === STATUS.CORRECT).length;
-      const scoreB = roscoB.filter(r => r.status === STATUS.CORRECT).length;
-      setWinner(scoreA > scoreB ? 'Equipo A' : scoreB > scoreA ? 'Equipo B' : 'Empate');
+      // rosco1 is always A's rosco, rosco2 is always B's rosco
+      const roscoAUpdated = rosco1;
+      const roscoBUpdated = rosco2;
+      
+      const scoreA = roscoAUpdated.filter(r => r.status === STATUS.CORRECT).length;
+      const scoreB = roscoBUpdated.filter(r => r.status === STATUS.CORRECT).length;
+      if (scoreA > scoreB) {
+        setWinner(playerNames.A);
+        setWinningReason(`Más aciertos (${scoreA} vs ${scoreB})`);
+      } else if (scoreB > scoreA) {
+        setWinner(playerNames.B);
+        setWinningReason(`Más aciertos (${scoreB} vs ${scoreA})`);
+      } else {
+        // Tiebreaker 1: player with fewer errors wins
+        const errorsA = roscoAUpdated.filter(r => r.status === STATUS.INCORRECT).length;
+        const errorsB = roscoBUpdated.filter(r => r.status === STATUS.INCORRECT).length;
+        
+        if (errorsA < errorsB) {
+          setWinner(playerNames.A);
+          setWinningReason(`Empate en aciertos (${scoreA}), pero menos errores (${errorsA} vs ${errorsB})`);
+        } else if (errorsB < errorsA) {
+          setWinner(playerNames.B);
+          setWinningReason(`Empate en aciertos (${scoreB}), pero menos errores (${errorsB} vs ${errorsA})`);
+        } else {
+          // Tiebreaker 2: player with more remaining time wins
+          if (timeLeftA > timeLeftB) {
+            setWinner(playerNames.A);
+            setWinningReason(`Empate en aciertos (${scoreA}) y errores (${errorsA}), pero menos tiempo usado`);
+          } else if (timeLeftB > timeLeftA) {
+            setWinner(playerNames.B);
+            setWinningReason(`Empate en aciertos (${scoreB}) y errores (${errorsB}), pero menos tiempo usado`);
+          } else {
+            setWinner('Empate');
+            setWinningReason(`${scoreA} aciertos, ${errorsA} errores y mismo tiempo`);
+          }
+        }
+      }
       if (soundEnabled) playSound('win');
     }
-  }, [roscoA, roscoB, soundEnabled]);
+  }, [soundEnabled, playerNames, timeLeftA, timeLeftB]);
 
   const handleAction = useCallback((action: 'correct' | 'incorrect' | 'pasapalabra') => {
-    if (!gameStarted || winner) return;
+    const activePlayerTime = activePlayer === 'A' ? timeLeftA : timeLeftB;
+    if (!gameStarted || winner || activePlayerTime <= 0) return;
 
     // Reproducir sonido
     if (soundEnabled) {
@@ -107,10 +147,10 @@ export const usePasapalabraGame = () => {
       const nextPlayer = activePlayer === 'A' ? 'B' : 'A';
       setActivePlayer(nextPlayer);
       setIsPaused(true);
-      checkWinner(
-        activePlayer === 'A' ? newRosco : roscoA,
-        activePlayer === 'A' ? roscoB : newRosco
-      );
+      // Pass the updated rosco for the current player and the current state for the other player
+      const roscoAForCheck = activePlayer === 'A' ? newRosco : roscoA;
+      const roscoBForCheck = activePlayer === 'A' ? roscoB : newRosco;
+      checkWinner(roscoAForCheck, roscoBForCheck);
     } else {
       if (action === 'correct') {
         if (activePlayer === 'A') setCurrentIndexA(nextIndex);
@@ -162,6 +202,7 @@ export const usePasapalabraGame = () => {
     setCurrentIndexB(0);
     setActivePlayer('A');
     setWinner(null);
+    setWinningReason(null);
     setGameStarted(true);
     setIsPanelCollapsed(false);
     setTimeLeftA(INITIAL_TIME);
@@ -178,6 +219,7 @@ export const usePasapalabraGame = () => {
     setCurrentIndexB(0);
     setActivePlayer('A');
     setWinner(null);
+    setWinningReason(null);
     setGameStarted(true);
     setTimeLeftA(INITIAL_TIME);
     setTimeLeftB(INITIAL_TIME);
@@ -206,12 +248,60 @@ export const usePasapalabraGame = () => {
           e.preventDefault();
           handleUndo();
         }
+      } else if (key === 'o') {
+        e.preventDefault();
+        setIsPanelCollapsed(prev => !prev);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleAction, handleUndo, prevGameState]);
+
+  // Handle time running out for a player
+  const handleTimeOut = useCallback((timedOutPlayer: 'A' | 'B') => {
+    const otherPlayer = timedOutPlayer === 'A' ? 'B' : 'A';
+    const otherTime = timedOutPlayer === 'A' ? timeLeftB : timeLeftA;
+    const otherRosco = timedOutPlayer === 'A' ? roscoB : roscoA;
+    const otherIndex = timedOutPlayer === 'A' ? currentIndexB : currentIndexA;
+    const hasQuestionsLeft = findNextIndex(otherRosco, otherIndex - 1) !== -1;
+
+    if (otherTime > 0 && hasQuestionsLeft) {
+      // Switch to other player
+      setActivePlayer(otherPlayer);
+      setIsPaused(true);
+    } else {
+      // Both players are done - determine winner
+      const scoreA = roscoA.filter(r => r.status === STATUS.CORRECT).length;
+      const scoreB = roscoB.filter(r => r.status === STATUS.CORRECT).length;
+      
+      if (scoreA > scoreB) {
+        setWinner(playerNames.A);
+        setWinningReason(`Más aciertos (${scoreA} vs ${scoreB})`);
+      } else if (scoreB > scoreA) {
+        setWinner(playerNames.B);
+        setWinningReason(`Más aciertos (${scoreB} vs ${scoreA})`);
+      } else {
+        // Tiebreaker 1: player with fewer errors wins
+        const errorsA = roscoA.filter(r => r.status === STATUS.INCORRECT).length;
+        const errorsB = roscoB.filter(r => r.status === STATUS.INCORRECT).length;
+        
+        if (errorsA < errorsB) {
+          setWinner(playerNames.A);
+          setWinningReason(`Empate en aciertos (${scoreA}), pero menos errores (${errorsA} vs ${errorsB})`);
+        } else if (errorsB < errorsA) {
+          setWinner(playerNames.B);
+          setWinningReason(`Empate en aciertos (${scoreB}), pero menos errores (${errorsB} vs ${errorsA})`);
+        } else {
+          // Both tied on score and errors - it's a draw
+          // (time comparison is unreliable when both ran out of time)
+          setWinner('Empate');
+          setWinningReason(`${scoreA} aciertos y ${errorsA} errores`);
+        }
+      }
+      if (soundEnabled) playSound('win');
+    }
+  }, [timeLeftA, timeLeftB, roscoA, roscoB, currentIndexA, currentIndexB, playerNames, soundEnabled]);
 
   // Timer effect
   useEffect(() => {
@@ -221,16 +311,30 @@ export const usePasapalabraGame = () => {
     if (isRunning) {
       interval = setInterval(() => {
         if (activePlayer === 'A') {
-          setTimeLeftA(prev => Math.max(0, prev - 10));
+          setTimeLeftA(prev => {
+            const newTime = Math.max(0, prev - 10);
+            if (newTime === 0 && prev > 0) {
+              // Time just ran out - schedule timeout handling
+              setTimeout(() => handleTimeOut('A'), 0);
+            }
+            return newTime;
+          });
         } else {
-          setTimeLeftB(prev => Math.max(0, prev - 10));
+          setTimeLeftB(prev => {
+            const newTime = Math.max(0, prev - 10);
+            if (newTime === 0 && prev > 0) {
+              // Time just ran out - schedule timeout handling
+              setTimeout(() => handleTimeOut('B'), 0);
+            }
+            return newTime;
+          });
         }
       }, 10);
     }
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [gameStarted, winner, isPaused, isPanelCollapsed, activePlayer]);
+  }, [gameStarted, winner, isPaused, isPanelCollapsed, activePlayer, handleTimeOut]);
 
   return {
     roscoA,
@@ -240,6 +344,7 @@ export const usePasapalabraGame = () => {
     currentIndexB,
     gameStarted,
     winner,
+    winningReason,
     isPanelCollapsed,
     soundEnabled,
     timeLeftA,
@@ -248,9 +353,11 @@ export const usePasapalabraGame = () => {
     prevGameState,
     currentLetterData,
     isCurrentDataValid,
+    playerNames,
     setIsPanelCollapsed,
     setSoundEnabled,
     setIsPaused,
+    setPlayerNames,
     handleAction,
     handleUndo,
     resetGame,

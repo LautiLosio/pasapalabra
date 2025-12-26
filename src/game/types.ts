@@ -28,7 +28,7 @@ export interface GameState {
   isPaused: boolean;
 }
 
-export const INITIAL_TIME = 180000; // 3 minutes in milliseconds
+export const INITIAL_TIME = 180; // 3 minutes in milliseconds
 
 export const ALPHABET_ES = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ".split("");
 
