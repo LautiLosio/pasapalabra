@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowDown, ArrowLeft, ArrowRight, Clock, Delete, Gamepad2, HelpCircle, Keyboard, Orbit, Play, RotateCcw, Sparkles, Target, Trophy, Users, Volume2, VolumeX } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowRight, Clock, Delete, Gamepad2, HelpCircle, Keyboard, Orbit, Play, RotateCcw, Settings, Sparkles, Target, Trophy, Users, Volume2, VolumeX } from 'lucide-react';
 import { InfoModal, ShortcutRow } from './InfoModal';
 
 interface HeaderBarProps {
@@ -10,6 +10,7 @@ interface HeaderBarProps {
   onSoundToggle: () => void;
   onGeneratorClick: () => void;
   onReset: () => void;
+  onSettingsClick: () => void;
 }
 
 export const HeaderBar = ({
@@ -18,6 +19,7 @@ export const HeaderBar = ({
   onSoundToggle,
   onGeneratorClick,
   onReset,
+  onSettingsClick,
 }: HeaderBarProps) => {
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
@@ -58,6 +60,15 @@ export const HeaderBar = ({
           title="Atajos de Teclado"
         >
           <Keyboard size={18} />
+        </button>
+
+        {/* Settings button */}
+        <button
+          onClick={onSettingsClick}
+          className="p-2.5 rounded-xl bg-white/10 text-white/70 hover:bg-white/15 hover:text-white transition-[background,color] duration-150 btn-press"
+          title="Configuración"
+        >
+          <Settings size={18} />
         </button>
 
         {/* Sound toggle */}

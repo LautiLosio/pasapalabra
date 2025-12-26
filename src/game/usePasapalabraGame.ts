@@ -44,6 +44,7 @@ export const usePasapalabraGame = () => {
   const [winner, setWinner] = useState<string | null>(null);
   const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [initialTime, setInitialTime] = useState(INITIAL_TIME);
   const [timeLeftA, setTimeLeftA] = useState(INITIAL_TIME);
   const [timeLeftB, setTimeLeftB] = useState(INITIAL_TIME);
   const [isPaused, setIsPaused] = useState(true);
@@ -205,11 +206,11 @@ export const usePasapalabraGame = () => {
     setWinningReason(null);
     setGameStarted(true);
     setIsPanelCollapsed(false);
-    setTimeLeftA(INITIAL_TIME);
-    setTimeLeftB(INITIAL_TIME);
+    setTimeLeftA(initialTime);
+    setTimeLeftB(initialTime);
     setIsPaused(true);
     setPrevGameState(null);
-  }, [sourceData]);
+  }, [sourceData, initialTime]);
 
   const updateSourceData = useCallback((newData: { A: Question[]; B: Question[] }) => {
     setSourceData(newData);
@@ -221,11 +222,11 @@ export const usePasapalabraGame = () => {
     setWinner(null);
     setWinningReason(null);
     setGameStarted(true);
-    setTimeLeftA(INITIAL_TIME);
-    setTimeLeftB(INITIAL_TIME);
+    setTimeLeftA(initialTime);
+    setTimeLeftB(initialTime);
     setIsPaused(true);
     setPrevGameState(null);
-  }, []);
+  }, [initialTime]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -355,6 +356,14 @@ export const usePasapalabraGame = () => {
     };
   }, [gameStarted, winner, isPaused, isPanelCollapsed, activePlayer, handleTimeOut]);
 
+  const updateInitialTime = useCallback((newTime: number) => {
+    setInitialTime(newTime);
+    if (!gameStarted) {
+      setTimeLeftA(newTime);
+      setTimeLeftB(newTime);
+    }
+  }, [gameStarted]);
+
   return {
     roscoA,
     roscoB,
@@ -373,6 +382,7 @@ export const usePasapalabraGame = () => {
     currentLetterData,
     isCurrentDataValid,
     playerNames,
+    initialTime,
     setIsPanelCollapsed,
     setSoundEnabled,
     setIsPaused,
@@ -381,6 +391,7 @@ export const usePasapalabraGame = () => {
     handleUndo,
     resetGame,
     updateSourceData,
+    updateInitialTime,
   };
 };
 

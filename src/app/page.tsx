@@ -5,10 +5,12 @@ import { HeaderBar } from '@/components/HeaderBar';
 import { RoscoCircle } from '@/components/RoscoCircle';
 import { ControlPanel } from '@/components/ControlPanel';
 import { GeneratorModal } from '@/components/GeneratorModal';
+import { SettingsModal } from '@/components/SettingsModal';
 import { usePasapalabraGame } from '@/game/usePasapalabraGame';
 
 export default function Home() {
   const [showGeneratorModal, setShowGeneratorModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const {
     roscoA,
     roscoB,
@@ -27,6 +29,7 @@ export default function Home() {
     currentLetterData,
     isCurrentDataValid,
     playerNames,
+    initialTime,
     setIsPanelCollapsed,
     setSoundEnabled,
     setIsPaused,
@@ -35,6 +38,7 @@ export default function Home() {
     handleUndo,
     resetGame,
     updateSourceData,
+    updateInitialTime,
   } = usePasapalabraGame();
 
   return (
@@ -45,6 +49,7 @@ export default function Home() {
         onSoundToggle={() => setSoundEnabled(!soundEnabled)}
         onGeneratorClick={() => setShowGeneratorModal(true)}
         onReset={resetGame}
+        onSettingsClick={() => setShowSettingsModal(true)}
       />
 
       <main className="flex-1 flex flex-col relative min-h-0">
@@ -98,6 +103,14 @@ export default function Home() {
         isOpen={showGeneratorModal}
         onClose={() => setShowGeneratorModal(false)}
         onGenerate={updateSourceData}
+      />
+
+      <SettingsModal
+        isOpen={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+        initialTime={initialTime}
+        onTimeChange={updateInitialTime}
+        gameStarted={gameStarted}
       />
     </div>
   );
