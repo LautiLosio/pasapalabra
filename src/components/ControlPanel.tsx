@@ -154,11 +154,11 @@ export const ControlPanel = ({
                 className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4"
               >
               {/* Desktop: Left utility buttons */}
-              <div className="hidden md:flex flex-col gap-1.5 flex-shrink-0">
+              <div className="hidden md:flex flex-col gap-1.5 flex-shrink-0 w-14">
                 <button
                   onClick={onPauseToggle}
                   className={`
-                    w-10 h-10 flex items-center justify-center rounded-lg transition-colors duration-150 btn-press border
+                    w-full h-11 flex items-center justify-center rounded-lg transition-colors duration-150 btn-press border
                     ${isPaused
                       ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30 border-green-500/30'
                       : 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border-amber-500/30'
@@ -172,7 +172,7 @@ export const ControlPanel = ({
                   onClick={onUndo}
                   disabled={!prevGameState}
                   className={`
-                    w-10 h-10 flex items-center justify-center rounded-lg transition-colors duration-150 btn-press
+                    w-full h-11 flex items-center justify-center rounded-lg transition-colors duration-150 btn-press
                     ${prevGameState
                       ? 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 border border-yellow-500/30'
                       : 'bg-white/5 text-white/20 border border-white/10'
@@ -247,7 +247,7 @@ export const ControlPanel = ({
                 <button
                   onClick={onPauseToggle}
                   className={`
-                    w-11 h-14 flex items-center justify-center rounded-xl transition-colors duration-150 btn-press border flex-shrink-0
+                    flex-1 h-14 flex items-center justify-center rounded-xl transition-colors duration-150 btn-press border
                     ${isPaused
                       ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30 border-green-500/30'
                       : 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border-amber-500/30'
@@ -261,7 +261,7 @@ export const ControlPanel = ({
                   onClick={onUndo}
                   disabled={!prevGameState}
                   className={`
-                    w-11 h-14 flex items-center justify-center rounded-xl transition-colors duration-150 btn-press flex-shrink-0
+                    flex-1 h-14 flex items-center justify-center rounded-xl transition-colors duration-150 btn-press
                     ${prevGameState
                       ? 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 border border-yellow-500/30'
                       : 'bg-white/5 text-white/20 border border-white/10'
@@ -273,21 +273,21 @@ export const ControlPanel = ({
                 </button>
                 <button
                   onClick={() => onAction('correct')}
-                  className="flex-1 h-14 max-w-[100px] bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white rounded-xl shadow-lg shadow-green-500/30 transition-[background,box-shadow] duration-150 btn-press flex items-center justify-center"
+                  className="flex-1 h-14 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white rounded-xl shadow-lg shadow-green-500/30 transition-[background,box-shadow] duration-150 btn-press flex items-center justify-center"
                   title="Acierto"
                 >
                   <Check size={30} strokeWidth={3} />
                 </button>
                 <button
                   onClick={() => onAction('incorrect')}
-                  className="flex-1 h-14 max-w-[100px] bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-400 hover:to-rose-400 text-white rounded-xl shadow-lg shadow-red-500/30 transition-[background,box-shadow] duration-150 btn-press flex items-center justify-center"
+                  className="flex-1 h-14 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-400 hover:to-rose-400 text-white rounded-xl shadow-lg shadow-red-500/30 transition-[background,box-shadow] duration-150 btn-press flex items-center justify-center"
                   title="Fallo"
                 >
                   <X size={26} strokeWidth={3} />
                 </button>
                 <button
                   onClick={() => onAction('pasapalabra')}
-                  className="flex-1 h-14 max-w-[100px] bg-white/10 hover:bg-white/15 text-white/80 hover:text-white rounded-xl border border-white/10 transition-[background,color] duration-150 btn-press flex items-center justify-center"
+                  className="flex-1 h-14 bg-white/10 hover:bg-white/15 text-white/80 hover:text-white rounded-xl border border-white/10 transition-[background,color] duration-150 btn-press flex items-center justify-center"
                   title="Pasapalabra"
                 >
                   <SkipForward size={26} strokeWidth={2.5} />

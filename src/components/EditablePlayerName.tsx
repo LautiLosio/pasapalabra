@@ -30,7 +30,7 @@ export const EditablePlayerName = ({
     setEditValue(value);
   }, [value]);
 
-  const handleDoubleClick = () => {
+  const handleClick = () => {
     setIsEditing(true);
   };
 
@@ -80,14 +80,14 @@ export const EditablePlayerName = ({
 
   return (
     <div
-      onDoubleClick={handleDoubleClick}
+      onClick={handleClick}
       className={`
         px-3 py-1 md:px-5 md:py-1.5 rounded-full font-[family-name:var(--font-fredoka)] text-sm md:text-lg font-semibold tracking-wide
         ${playerGradient}
         cursor-pointer transition-all hover:scale-105 active:scale-95
         ${className}
       `}
-      title="Doble clic para editar"
+      title="Clic para editar"
     >
       {value}
     </div>

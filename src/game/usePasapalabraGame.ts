@@ -232,25 +232,44 @@ export const usePasapalabraGame = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement).tagName === 'INPUT') return;
 
-      const key = e.key.toLowerCase();
+      const key = e.key;
 
+      // Pause/Resume: Space
       if (key === ' ') {
         e.preventDefault();
         setIsPaused(prev => !prev);
-      } else if (key === 's') {
+      } 
+      // Correct: Arrow Right or A
+      else if (key === 'ArrowRight' || key.toLowerCase() === 'a') {
+        e.preventDefault();
         handleAction('correct');
-      } else if (key === 'n') {
+      } 
+      // Incorrect: Arrow Left or F
+      else if (key === 'ArrowLeft' || key.toLowerCase() === 'f') {
+        e.preventDefault();
         handleAction('incorrect');
-      } else if (key === 'p') {
+      } 
+      // Pasapalabra: Arrow Down or P
+      else if (key === 'ArrowDown' || key.toLowerCase() === 'p') {
+        e.preventDefault();
         handleAction('pasapalabra');
-      } else if (key === 'z' || key === 'backspace') {
+      } 
+      // Undo: Ctrl+Z, Z, or Backspace
+      else if (key === 'Backspace' || key.toLowerCase() === 'z') {
         if (prevGameState) {
           e.preventDefault();
           handleUndo();
         }
-      } else if (key === 'o') {
+      } 
+      // Toggle panel: Escape or I
+      else if (key === 'Escape' || key.toLowerCase() === 'i') {
         e.preventDefault();
         setIsPanelCollapsed(prev => !prev);
+      }
+      // Toggle sound: M
+      else if (key.toLowerCase() === 'm') {
+        e.preventDefault();
+        setSoundEnabled(prev => !prev);
       }
     };
 

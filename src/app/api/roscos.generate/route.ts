@@ -92,7 +92,7 @@ Asegúrate de que el campo condition refleje la realidad (si la palabra empieza 
         if (!valid) {
           return {
             ...item,
-            description: `⚠️ [ERROR IA: La palabra '${item.answer}' NO cumple '${item.condition}'] ${item.description}`,
+            description: `[ERROR IA: La palabra '${item.answer}' NO cumple '${item.condition}'] ${item.description}`,
           };
         }
         return item;

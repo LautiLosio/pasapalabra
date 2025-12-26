@@ -3,12 +3,14 @@
 import { useState, useEffect } from 'react';
 
 export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia(query).matches
-  );
+  // Always start with false to avoid SSR hydration mismatch
+  const [matches, setMatches] = useState(false);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia(query);
+    // Sync with actual value on mount
+    setMatches(mediaQuery.matches);
+    
     const handler = (event: MediaQueryListEvent) => setMatches(event.matches);
     mediaQuery.addEventListener('change', handler);
 

@@ -52,8 +52,8 @@ export const RoscoCircle = ({
       if (isMobile) {
         return {
           left: '50%',
-          top: playerId === 'A' ? '35%' : '75%',
-          scale: 0.7,
+          top: playerId === 'A' ? '25%' : '75%',
+          scale: 0.75,
           opacity: 1,
         };
       }
@@ -71,8 +71,8 @@ export const RoscoCircle = ({
       if (isMobile) {
         return {
           left: '50%',
-          top: playerId === 'A' ? '35%' : '75%',
-          scale: 0.7,
+          top: playerId === 'A' ? '25%' : '75%',
+          scale: 0.75,
           opacity: 1,
         };
       }
@@ -103,10 +103,10 @@ export const RoscoCircle = ({
   }, [hasWinner, isPublicMode, active, playerId, isMobile, gameStarted]);
 
   const springTransition = {
-    type: 'spring' as const,
-    stiffness: 120,
+    type: 'spring' as const, 
+    mass: 0.75, 
+    stiffness: 200,
     damping: 20,
-    mass: 0.8,
   };
 
   // Initial state: start from above with fade
