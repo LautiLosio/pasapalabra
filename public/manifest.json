@@ -1,7 +1,7 @@
 {
   "name": "Pasapalabra - Control de Juego",
   "short_name": "Pasapalabra",
-  "description": "Consola de control para el juego Pasapalabra con generación de preguntas por IA",
+  "description": "Sé el presentador de tu propio juego de Pasapalabra. Controla la partida, gestiona las respuestas y dirige el juego como anfitrión",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",

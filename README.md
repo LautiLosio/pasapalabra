@@ -1,10 +1,10 @@
 # Pasapalabra - Control de Juego
 
-Consola de control para el juego Pasapalabra con generación de preguntas por IA usando OpenRouter.
+Sé el presentador de tu propio juego de Pasapalabra. Controla la partida, gestiona las respuestas y dirige el juego como anfitrión. Incluye generación de preguntas por IA usando OpenRouter.
 
 ## Características
 
-- 🎮 Control de juego para dos equipos (A y B)
+- 🎮 Control de juego para dos equipos
 - ⏱️ Temporizadores independientes por equipo
 - ⌨️ Atajos de teclado para acciones rápidas
 - 🔊 Sonidos programáticos para feedback
@@ -14,7 +14,7 @@ Consola de control para el juego Pasapalabra con generación de preguntas por IA
 
 ## Requisitos
 
-- Node.js 18+
+- Node.js 20+
 - npm, yarn, pnpm o bun
 
 ## Configuración
@@ -22,7 +22,7 @@ Consola de control para el juego Pasapalabra con generación de preguntas por IA
 1. Clona el repositorio:
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/LautiLosio/pasapalabra
 cd pasapalabra
 ```
 
@@ -34,11 +34,7 @@ npm install
 
 3. Configura las variables de entorno:
 
-```bash
-cp .env.example .env
-```
-
-Edita `.env` y agrega tu API key de OpenRouter:
+Crea un archivo `.env` en la raíz del proyecto y agrega tu API key de OpenRouter:
 
 ```
 OPENROUTER_API_KEY=tu_api_key_aqui
@@ -51,6 +47,8 @@ Puedes obtener una API key en [OpenRouter](https://openrouter.ai/).
 ```
 OPENROUTER_MODEL=openai/gpt-4o-mini
 ```
+
+Por defecto se usa `mistralai/devstral-2512:free`.
 
 ## Ejecución
 
@@ -65,10 +63,12 @@ Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 ## Atajos de Teclado
 
 - `Espacio`: Pausar/Reanudar reloj
-- `S`: Marcar como correcto
-- `N`: Marcar como incorrecto
-- `P`: Pasapalabra (saltar)
+- `Flecha Derecha` o `A`: Marcar como correcto
+- `Flecha Izquierda` o `F`: Marcar como incorrecto
+- `Flecha Abajo` o `P`: Pasapalabra (saltar)
 - `Z` o `Backspace`: Deshacer última acción
+- `Escape` o `I`: Ocultar/Mostrar controles
+- `M`: Activar/Desactivar sonidos
 
 ## Estructura del Proyecto
 
@@ -83,7 +83,10 @@ src/
 │   ├── HeaderBar.tsx
 │   ├── RoscoCircle.tsx
 │   ├── ControlPanel.tsx
-│   └── GeneratorModal.tsx
+│   ├── GeneratorModal.tsx
+│   ├── SettingsModal.tsx
+│   ├── InfoModal.tsx
+│   └── EditablePlayerName.tsx
 ├── game/                  # Lógica del juego
 │   ├── types.ts          # Tipos TypeScript
 │   ├── defaultQuestions.ts
@@ -98,19 +101,20 @@ src/
 
 ## Tecnologías
 
-- **Next.js 15** - Framework React
+- **Next.js 16** - Framework React
 - **TypeScript** - Tipado estático
 - **Tailwind CSS** - Estilos
 - **Vercel AI SDK** - Integración con modelos de IA
 - **OpenRouter** - Proveedor de modelos de IA
 - **Zod** - Validación de esquemas
 - **Lucide React** - Iconos
+- **Motion** - Animaciones
 
 ## Despliegue
 
 El proyecto está listo para desplegar en Vercel:
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=<repo-url>)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/LautiLosio/pasapalabra)
 
 Asegúrate de configurar la variable de entorno `OPENROUTER_API_KEY` en tu plataforma de despliegue.
 

@@ -37,7 +37,7 @@ export const HeaderBar = ({
             PASAPALABRA
           </h1>
           <p className="text-[10px] text-white/40 uppercase tracking-widest -mt-0.5">
-            Control de Juego
+            Organiza tu propio juego de Pasapalabra
           </p>
         </div>
       </div>
@@ -141,7 +141,7 @@ export const HeaderBar = ({
       isOpen={showHelpModal}
       onClose={() => setShowHelpModal(false)}
       title="Cómo Jugar"
-      subtitle="Guía rápida del juego"
+      subtitle="Guía para presentadores"
       icon={<HelpCircle size={20} className="text-white" />}
     >
       <div className="space-y-4 text-sm text-white/70">
@@ -200,7 +200,7 @@ export const HeaderBar = ({
       isOpen={showShortcutsModal}
       onClose={() => setShowShortcutsModal(false)}
       title="Atajos de Teclado"
-      subtitle="Controla el juego rápidamente"
+      subtitle="Control rápido para el presentador"
       icon={<Keyboard size={20} className="text-white" />}
     >
       <div className="space-y-3">

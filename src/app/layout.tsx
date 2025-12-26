@@ -16,7 +16,7 @@ const nunito = Nunito({
 
 export const metadata: Metadata = {
   title: "Pasapalabra - Control de Juego",
-  description: "Consola de control para el juego Pasapalabra con generación de preguntas por IA",
+  description: "Sé el presentador de tu propio juego de Pasapalabra. Controla la partida, gestiona las respuestas y dirige el juego como anfitrión",
   manifest: "/manifest.json",
   themeColor: "#9333ea",
   icons: {
