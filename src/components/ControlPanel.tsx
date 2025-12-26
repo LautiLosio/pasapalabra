@@ -186,8 +186,8 @@ export const ControlPanel = ({
 
               {/* Question card - full width on mobile, flex-1 on desktop */}
               <div className="flex-1 order-1 md:order-none">
-                <div className="glass-light rounded-xl px-3 py-2 md:px-4 md:py-3 min-h-[80px] md:h-[100px] flex flex-col justify-between overflow-hidden">
-                  <div className="flex items-center gap-2 flex-wrap">
+                <div className="glass-light rounded-xl px-3 py-2 md:px-4 md:py-3 min-h-[80px] md:h-[125px] flex flex-col overflow-hidden">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
                     <span
                       className={`
                         text-[10px] font-bold uppercase px-2 py-0.5 rounded-md border
@@ -205,10 +205,12 @@ export const ControlPanel = ({
                       </span>
                     )}
                   </div>
-                  <p className="text-sm md:text-lg font-medium text-white leading-snug line-clamp-2 my-1">
-                    {currentLetterData.description}
-                  </p>
-                  <div className="flex items-center gap-2">
+                  <div className="flex-1 flex items-center justify-center min-h-[2.5em] md:min-h-[3em]">
+                    <p className="text-sm md:text-lg font-medium text-white leading-relaxed line-clamp-2 w-full">
+                      {currentLetterData.description}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
                     <span className="text-[10px] font-bold text-red-400/80 uppercase tracking-wide">Respuesta:</span>
                     <span className={`text-sm md:text-base font-bold tracking-tight ${!isCurrentDataValid ? 'text-red-400 decoration-wavy underline' : 'text-white'}`}>
                       {currentLetterData.answer}
