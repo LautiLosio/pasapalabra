@@ -128,6 +128,33 @@ export default function Home() {
     };
   }, [emblaApi, activePlayerIndex, shouldUseCarousel]);
 
+  // Scroll to winner's rosco when game ends
+  useEffect(() => {
+    if (!emblaApi || !shouldUseCarousel || !winner || !leaderboard) return;
+    
+    // Find the winner's index from the leaderboard (first entry with rank 1)
+    const winnerEntry = leaderboard.find(entry => entry.rank === 1);
+    if (!winnerEntry) return;
+    
+    let timeoutId: NodeJS.Timeout;
+    
+    // Wait for DOM updates and ensure carousel layout is ready
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        timeoutId = setTimeout(() => {
+          // Scroll to winner's rosco
+          emblaApi.scrollTo(winnerEntry.index, false);
+        }, 100);
+      });
+    });
+    
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [emblaApi, shouldUseCarousel, winner, leaderboard]);
+
 
   return (
     <div className="h-screen gradient-bg font-[family-name:var(--font-nunito)] flex flex-col">
