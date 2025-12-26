@@ -1,0 +1,33 @@
+{
+  "name": "Pasapalabra - Control de Juego",
+  "short_name": "Pasapalabra",
+  "description": "Consola de control para el juego Pasapalabra con generación de preguntas por IA",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#9333ea",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/pasapalabra-logo-1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/pasapalabra-logo-1024.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pasapalabra-logo-1024.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["games", "entertainment"],
+  "lang": "es"
+}
+
