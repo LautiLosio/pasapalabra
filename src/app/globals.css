@@ -3,15 +3,19 @@
 /* Embla Carousel base styles */
 .embla {
   overflow: hidden;
+  touch-action: pan-x pinch-zoom;
+  -webkit-overflow-scrolling: touch;
 }
 
 .embla__container {
   display: flex;
-  touch-action: pan-y pinch-zoom;
+  touch-action: pan-x pinch-zoom;
+  -webkit-overflow-scrolling: touch;
 }
 
 .embla__slide {
   position: relative;
+  touch-action: pan-x pinch-zoom;
 }
 
 :root {

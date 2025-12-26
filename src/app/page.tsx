@@ -50,36 +50,81 @@ export default function Home() {
     shouldUseCarousel
       ? {
           align: 'center',
-          containScroll: 'keepSnaps',
+          containScroll: 'trimSnaps', // Remove empty slides from snap points to prevent interference
           slidesToScroll: 1,
           skipSnaps: false,
           dragFree: false,
-          duration: 15, // Higher value = slower, smoother transition (20-60 recommended)
+          duration: 15,
+          startIndex: 1, // Start at first rosco (skip empty slide at index 0)
+          dragThreshold: 5, // Lower threshold for more responsive swipes (default: 10)
+          watchDrag: true, // Watch for drag events
+          watchResize: true, // Watch for resize events
         }
       : undefined,
     shouldUseCarousel
       ? [
           WheelGesturesPlugin({
-            forceWheelAxis: 'x', // Force horizontal scrolling
+            forceWheelAxis: 'x',
           }),
         ]
       : []
   );
 
-  // Scroll to active player when it changes
-  // Account for the empty slide at the start (index 0), so player index + 1 = slide index
+  const isUserDragging = useRef(false);
+
+  // Track user drag to prevent programmatic scrolling during interaction
   useEffect(() => {
     if (!emblaApi || !shouldUseCarousel) return;
+
+    const onPointerDown = () => {
+      isUserDragging.current = true;
+    };
+
+    const onPointerUp = () => {
+      setTimeout(() => {
+        isUserDragging.current = false;
+      }, 50);
+    };
+
+    emblaApi.on('pointerDown', onPointerDown);
+    emblaApi.on('pointerUp', onPointerUp);
+
+    return () => {
+      emblaApi.off('pointerDown', onPointerDown);
+      emblaApi.off('pointerUp', onPointerUp);
+    };
+  }, [emblaApi, shouldUseCarousel]);
+
+  // Scroll to active player when it changes
+  // With trimSnaps, empty slides are removed from snap points
+  // scrollTo should use slide indices, but with trimSnaps it might use snap indices
+  // Testing: if offset by 1, try using activePlayerIndex directly as snap index
+  useEffect(() => {
+    if (!emblaApi || !shouldUseCarousel || isUserDragging.current) return;
     
-    // Use a small delay to allow animations to start smoothly
-    const timeoutId = setTimeout(() => {
-      const slideIndex = activePlayerIndex + 1; // +1 because first slide is empty
-      // Use smooth scroll - second param false means animated (not jump)
-      emblaApi.scrollTo(slideIndex, false);
-    }, 100); // Delay to allow rosco animations to start first
+    let timeoutId: NodeJS.Timeout;
+    
+    // Wait for DOM updates and ensure carousel layout is ready for proper centering
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (isUserDragging.current) return;
+        
+        timeoutId = setTimeout(() => {
+          if (isUserDragging.current) return;
+          
+          // With trimSnaps, scrollTo might interpret index as snap index
+          // Since snap 0 = slide 1 (first rosco), snap 1 = slide 2 (second rosco)
+          // And activePlayerIndex 0 = first player = should be at slide 1
+          // So we use activePlayerIndex directly (which matches snap index with trimSnaps)
+          emblaApi.scrollTo(activePlayerIndex, false);
+        }, 100);
+      });
+    });
     
     return () => {
-      clearTimeout(timeoutId);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     };
   }, [emblaApi, activePlayerIndex, shouldUseCarousel]);
 

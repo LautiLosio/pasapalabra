@@ -105,6 +105,7 @@ export const RoscoCircle = ({
         WebkitUserSelect: 'none',
         MozUserSelect: 'none',
         msUserSelect: 'none',
+        touchAction: 'pan-x pinch-zoom', // Allow horizontal panning for carousel
       }}
       className={`
         flex flex-col items-center
