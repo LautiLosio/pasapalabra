@@ -1,24 +1,24 @@
 'use client';
 
 import { Timer, Trophy, Skull } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { motion } from 'motion/react';
-import { Question, STATUS } from '@/game/types';
+import { Question, STATUS, getPlayerColor } from '@/game/types';
 import { formatTime } from '@/game/usePasapalabraGame';
 import { EditablePlayerName } from './EditablePlayerName';
-import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 interface RoscoCircleProps {
   data: Question[];
   active: boolean;
   activeIndex: number;
-  playerId: 'A' | 'B';
+  playerId: number;
   isPublicMode: boolean;
   time: number;
   playerName: string;
   onPlayerNameChange: (value: string) => void;
   hasWinner: boolean;
   gameStarted: boolean;
+  totalPlayers: number;
 }
 
 export const RoscoCircle = ({
@@ -32,75 +32,39 @@ export const RoscoCircle = ({
   onPlayerNameChange,
   hasWinner,
   gameStarted,
+  totalPlayers,
 }: RoscoCircleProps) => {
-  const isMobile = useMediaQuery('(max-width: 767px)');
   const isVisuallyActive = isPublicMode || active || hasWinner || !gameStarted;
+  const roscoRef = useRef<HTMLDivElement>(null);
   
   const correctCount = data.filter(i => i.status === STATUS.CORRECT).length;
   const incorrectCount = data.filter(i => i.status === STATUS.INCORRECT).length;
   
-  const ringColor = playerId === 'A' 
-    ? 'from-blue-500 via-blue-400 to-cyan-400' 
-    : 'from-orange-500 via-orange-400 to-amber-400';
+  const ringColor = getPlayerColor(playerId);
   
   const timerClass = hasWinner || time <= 0 ? 'timer-normal' : time <= 10 ? 'timer-critical' : time <= 30 ? 'timer-warning' : 'timer-normal';
 
-  // Calculate animation values based on state
+  // Calculate animation values based on state - always centered in carousel slides
   const animationState = useMemo(() => {
-    if (hasWinner || isPublicMode) {
-      // Public mode: side by side on desktop, stacked on mobile
-      if (isMobile) {
-        return {
-          left: '50%',
-          top: playerId === 'A' ? '25%' : '75%',
-          scale: 0.75,
-          opacity: 1,
-        };
-      }
-      // Desktop: side by side
+    const isPublicView = hasWinner || isPublicMode || !gameStarted;
+    
+    // With 2+ players, always use carousel (flexbox centers it, no positioning needed)
+    if (totalPlayers >= 2) {
+      const scale = isPublicView ? 0.85 : (active ? 1 : 0.5);
       return {
-        left: playerId === 'A' ? 'calc(50% - min(230px, 30vw))' : 'calc(50% + min(230px, 30vw))',
-        top: '50%',
-        scale: 1,
-        opacity: 1,
+        scale,
+        opacity: active || isPublicView ? 1 : 0.4,
       };
     }
 
-    // Before game starts: both centered, stacked on mobile
-    if (!gameStarted) {
-      if (isMobile) {
-        return {
-          left: '50%',
-          top: playerId === 'A' ? '25%' : '75%',
-          scale: 0.75,
-          opacity: 1,
-        };
-      }
-      return {
-        left: playerId === 'A' ? 'calc(50% - min(230px, 30vw))' : 'calc(50% + min(230px, 30vw))',
-        top: '50%',
-        scale: 1,
-        opacity: 1,
-      };
-    }
-
-    if (active) {
-      return {
-        left: '50%',
-        top: '50%',
-        scale: 1,
-        opacity: 1,
-      };
-    }
-
-    // Inactive during game
+    // Single player: centered with absolute positioning
     return {
-      left: playerId === 'A' ? '22%' : '78%',
+      left: '50%',
       top: '50%',
-      scale: isMobile ? 0.35 : 0.5,
-      opacity: 0.4,
+      scale: 1,
+      opacity: 1,
     };
-  }, [hasWinner, isPublicMode, active, playerId, isMobile, gameStarted]);
+  }, [hasWinner, isPublicMode, active, gameStarted, totalPlayers]);
 
   const springTransition = {
     type: 'spring' as const, 
@@ -109,24 +73,38 @@ export const RoscoCircle = ({
     damping: 20,
   };
 
-  // Initial state: start from above with fade
-  const initialState = {
-    left: animationState.left,
-    top: '30%',
-    scale: animationState.scale,
-    opacity: 0,
-  };
+  // Initial state: use a slight offset to ensure animations trigger
+  // This allows smooth transitions when state changes
+  const initialState = totalPlayers >= 2
+    ? {
+        scale: animationState.scale * 0.98, // Slight difference to trigger animation
+        opacity: animationState.opacity * 0.98,
+      }
+    : {
+        left: animationState.left,
+        top: '30%',
+        scale: animationState.scale * 0.98,
+        opacity: animationState.opacity * 0.98,
+      };
 
+  // Use relative positioning when in carousel (2+ players), absolute for single player
+  const useRelativePosition = totalPlayers >= 2;
+  
   return (
     <motion.div
       initial={initialState}
       animate={animationState}
       transition={springTransition}
+      layout
       style={{ 
-        position: 'absolute',
-        x: '-50%',
-        y: '-50%',
+        position: useRelativePosition ? 'relative' : 'absolute',
+        x: useRelativePosition ? 0 : '-50%',
+        y: useRelativePosition ? 0 : '-50%',
         zIndex: active ? 10 : hasWinner || isPublicMode ? 1 : 0,
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        MozUserSelect: 'none',
+        msUserSelect: 'none',
       }}
       className={`
         flex flex-col items-center
@@ -159,7 +137,7 @@ export const RoscoCircle = ({
       </div>
 
       {/* Rosco container - responsive sizing */}
-      <div className="rosco-ring relative">
+      <div ref={roscoRef} className="rosco-ring relative">
         {/* Outer glow ring - GPU optimized */}
         <div 
           className={`

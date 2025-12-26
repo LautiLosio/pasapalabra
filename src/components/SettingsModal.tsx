@@ -1,14 +1,17 @@
 'use client';
 
-import { Settings } from 'lucide-react';
+import { Settings, Plus, X } from 'lucide-react';
 import { InfoModal } from './InfoModal';
 import { useState, useEffect } from 'react';
+import { MAX_PLAYERS, MIN_PLAYERS } from '@/game/types';
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialTime: number;
   onTimeChange: (time: number) => void;
+  playerNames: string[];
+  onPlayerNamesChange: (names: string[]) => void;
   gameStarted: boolean;
 }
 
@@ -17,6 +20,8 @@ export const SettingsModal = ({
   onClose,
   initialTime,
   onTimeChange,
+  playerNames,
+  onPlayerNamesChange,
   gameStarted,
 }: SettingsModalProps) => {
   const presetTimes = [
@@ -164,6 +169,83 @@ export const SettingsModal = ({
                 </div>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Player Management Section */}
+        <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+          <h3 className="font-bold text-white mb-4 flex items-center gap-2">
+            <Settings size={18} className="text-purple-400" />
+            Jugadores ({playerNames.length}/{MAX_PLAYERS})
+          </h3>
+
+          {gameStarted && (
+            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-3 text-yellow-400 text-xs mb-4">
+              ⚠️ Los jugadores solo se pueden modificar antes de iniciar el juego
+            </div>
+          )}
+
+          <div className="space-y-3">
+            {playerNames.map((name, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => {
+                    const newNames = [...playerNames];
+                    newNames[index] = e.target.value;
+                    onPlayerNamesChange(newNames);
+                  }}
+                  disabled={gameStarted}
+                  className="
+                    flex-1 px-3 py-2 rounded-lg bg-white/10 border border-white/20 
+                    text-white text-sm font-medium
+                    focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                  "
+                  placeholder={`Jugador ${index + 1}`}
+                  maxLength={30}
+                />
+                <button
+                  onClick={() => {
+                    if (playerNames.length > MIN_PLAYERS && !gameStarted) {
+                      const newNames = playerNames.filter((_, i) => i !== index);
+                      onPlayerNamesChange(newNames);
+                    }
+                  }}
+                  disabled={gameStarted || playerNames.length <= MIN_PLAYERS}
+                  className="
+                    w-10 h-10 rounded-lg bg-red-500/20 text-red-400 
+                    hover:bg-red-500/30 border border-red-500/30
+                    disabled:opacity-30 disabled:cursor-not-allowed
+                    flex items-center justify-center transition-colors
+                  "
+                  title="Remover jugador"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            ))}
+
+            <button
+              onClick={() => {
+                if (playerNames.length < MAX_PLAYERS && !gameStarted) {
+                  const newNames = [...playerNames, `Jugador ${playerNames.length + 1}`];
+                  onPlayerNamesChange(newNames);
+                }
+              }}
+              disabled={gameStarted || playerNames.length >= MAX_PLAYERS}
+              className="
+                w-full py-2.5 rounded-lg bg-purple-500/20 text-purple-400 
+                hover:bg-purple-500/30 border border-purple-500/30
+                disabled:opacity-30 disabled:cursor-not-allowed
+                flex items-center justify-center gap-2 font-semibold text-sm
+                transition-colors
+              "
+            >
+              <Plus size={18} />
+              Agregar Jugador
+            </button>
           </div>
         </div>
       </div>

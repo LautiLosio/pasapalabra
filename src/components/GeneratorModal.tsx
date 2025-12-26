@@ -1,17 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { Sparkles, X, Loader2, Wand2, AlertCircle } from 'lucide-react';
+import { Sparkles, X, Loader2, Wand2, AlertCircle, Users, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Question } from '@/game/types';
 
 interface GeneratorModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onGenerate: (data: { A: Question[]; B: Question[] }) => void;
+  onGenerate: (data: Question[][]) => void;
+  currentPlayerCount: number;
 }
 
-export const GeneratorModal = ({ isOpen, onClose, onGenerate }: GeneratorModalProps) => {
+export const GeneratorModal = ({ isOpen, onClose, onGenerate, currentPlayerCount }: GeneratorModalProps) => {
   const [theme, setTheme] = useState('');
   const [difficulty, setDifficulty] = useState('MEDIO');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -28,6 +29,7 @@ export const GeneratorModal = ({ isOpen, onClose, onGenerate }: GeneratorModalPr
         body: JSON.stringify({ 
           theme: theme.trim() || undefined,
           difficulty: difficulty || undefined,
+          playerCount: currentPlayerCount,
         }),
       });
 
@@ -38,11 +40,15 @@ export const GeneratorModal = ({ isOpen, onClose, onGenerate }: GeneratorModalPr
 
       const result = await response.json();
 
-      if (result.roscoA && result.roscoB) {
-        if (result.roscoA.length < 26 || result.roscoB.length < 26) {
-          throw new Error('El rosco generado está incompleto.');
+      if (result.roscos && Array.isArray(result.roscos)) {
+        if (result.roscos.length !== currentPlayerCount) {
+          throw new Error(`Se esperaban ${currentPlayerCount} roscos, se recibieron ${result.roscos.length}`);
         }
-        onGenerate({ A: result.roscoA, B: result.roscoB });
+        const incompleteRoscos = result.roscos.filter((rosco: Question[]) => rosco.length < 27);
+        if (incompleteRoscos.length > 0) {
+          throw new Error('Uno o más roscos están incompletos.');
+        }
+        onGenerate(result.roscos);
         setTheme('');
         setDifficulty('MEDIO');
         onClose();
@@ -166,6 +172,59 @@ export const GeneratorModal = ({ isOpen, onClose, onGenerate }: GeneratorModalPr
               >
                 <AlertCircle size={18} className="flex-shrink-0 mt-0.5" />
                 <span>{errorMsg}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Generation progress disclaimer */}
+          <AnimatePresence>
+            {isGenerating && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+                className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-xl p-4"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 mt-0.5">
+                    <Clock className="text-purple-400 animate-pulse" size={18} />
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <p className="text-sm text-white/90 font-semibold">
+                      Generando {currentPlayerCount} {currentPlayerCount === 1 ? 'rosco' : 'roscos'}...
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-1">
+                        {Array.from({ length: currentPlayerCount }, (_, i) => (
+                          <motion.div
+                            key={i}
+                            initial={{ scale: 0.5, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{
+                              delay: i * 0.15,
+                              duration: 0.3,
+                              repeat: Infinity,
+                              repeatType: 'reverse',
+                            }}
+                            className="w-2 h-2 rounded-full bg-purple-400"
+                          />
+                        ))}
+                      </div>
+                      <p className="text-xs text-white/60 flex items-center gap-1">
+                        <Users size={12} />
+                        <span>
+                          {currentPlayerCount > 1 && (
+                            <>Más jugadores = más tiempo de espera</>
+                          )}
+                          {currentPlayerCount === 1 && (
+                            <>Generando tu rosco personalizado...</>
+                          )}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>

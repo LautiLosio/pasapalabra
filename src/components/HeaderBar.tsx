@@ -9,6 +9,7 @@ interface HeaderBarProps {
   soundEnabled: boolean;
   onSoundToggle: () => void;
   onGeneratorClick: () => void;
+  onStart: () => void;
   onReset: () => void;
   onSettingsClick: () => void;
 }
@@ -18,6 +19,7 @@ export const HeaderBar = ({
   soundEnabled,
   onSoundToggle,
   onGeneratorClick,
+  onStart,
   onReset,
   onSettingsClick,
 }: HeaderBarProps) => {
@@ -106,7 +108,7 @@ export const HeaderBar = ({
         {/* Start/Reset button */}
         {!gameStarted ? (
           <button
-            onClick={onReset}
+            onClick={onStart}
             className="
               flex items-center gap-2 
               bg-gradient-to-r from-green-500 to-emerald-500 

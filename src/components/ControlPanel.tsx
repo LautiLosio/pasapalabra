@@ -1,39 +1,39 @@
-import { Check, X, SkipForward, Trophy, ChevronDown, ChevronUp, Pause, Play, Undo2, AlertTriangle, Sparkles } from 'lucide-react';
+import { Check, X, SkipForward, Trophy, ChevronDown, ChevronUp, Pause, Play, Undo2, AlertTriangle, Sparkles, List } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Question } from '@/game/types';
+import { Question, LeaderboardEntry } from '@/game/types';
 
 interface ControlPanelProps {
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   winner: string | null;
-  winningReason: string | null;
+  leaderboard: LeaderboardEntry[] | null;
   gameStarted: boolean;
   currentLetterData: Question;
   isCurrentDataValid: boolean;
   isPaused: boolean;
   prevGameState: unknown;
-  playerNames: { A: string; B: string };
   onPauseToggle: () => void;
   onUndo: () => void;
   onAction: (action: 'correct' | 'incorrect' | 'pasapalabra') => void;
   onReset: () => void;
+  onShowLeaderboard: () => void;
 }
 
 export const ControlPanel = ({
   isCollapsed,
   onToggleCollapse,
   winner,
-  winningReason,
+  leaderboard,
   gameStarted,
   currentLetterData,
   isCurrentDataValid,
   isPaused,
   prevGameState,
-  playerNames,
   onPauseToggle,
   onUndo,
   onAction,
   onReset,
+  onShowLeaderboard,
 }: ControlPanelProps) => {
   return (
     <section
@@ -76,8 +76,8 @@ export const ControlPanel = ({
           >
             <div className="max-w-6xl mx-auto px-3 py-2 md:p-4 w-full">
               <AnimatePresence mode="wait">
-            {winner ? (
-              // Winner state - stacks on mobile
+            {leaderboard && leaderboard.length > 0 ? (
+              // Winner state - compact display with button to see full leaderboard
               <motion.div
                 key="winner"
                 initial={{ opacity: 0, y: 20 }}
@@ -100,36 +100,57 @@ export const ControlPanel = ({
                     <h2 className="text-xl md:text-3xl font-[family-name:var(--font-fredoka)] font-bold text-white">
                       ¡Juego Terminado!
                     </h2>
-                    <p className="text-base md:text-lg text-white/60">
-                      Ganador:{' '}
-                      <span className={`font-bold ${winner === playerNames.A ? 'text-blue-400' : winner === playerNames.B ? 'text-orange-400' : ''}`}>
-                        {winner}
-                      </span>
-                    </p>
-                    {winningReason && (
-                      <p className="text-xs md:text-sm text-white/50 mt-1">
-                        {winningReason}
+                    {winner && (
+                      <p className="text-base md:text-lg text-white/60">
+                        {winner === 'Empate' ? (
+                          <span className="font-bold text-yellow-400">Empate</span>
+                        ) : (
+                          <>
+                            Ganador:{' '}
+                            <span className="font-bold text-yellow-400">
+                              {winner}
+                            </span>
+                          </>
+                        )}
                       </p>
                     )}
                   </div>
                 </div>
-                <motion.button
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.25 }}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={onReset}
-                  className="
-                    bg-gradient-to-r from-blue-500 to-purple-500 
-                    hover:from-blue-400 hover:to-purple-400
-                    text-white px-5 py-2.5 md:px-6 md:py-3 rounded-xl font-bold text-sm md:text-base
-                    shadow-lg shadow-blue-500/30 transition-colors
-                    flex items-center gap-2
-                  "
-                >
-                  <Sparkles size={18} /> Nueva Partida
-                </motion.button>
+                <div className="flex items-center gap-3">
+                  <motion.button
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.2 }}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={onShowLeaderboard}
+                    className="
+                      bg-white/10 hover:bg-white/15
+                      text-white px-4 py-2.5 md:px-5 md:py-3 rounded-xl font-semibold text-sm md:text-base
+                      border border-white/20 transition-colors
+                      flex items-center gap-2
+                    "
+                  >
+                    <List size={18} /> Ver Clasificación
+                  </motion.button>
+                  <motion.button
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.25 }}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={onReset}
+                    className="
+                      bg-gradient-to-r from-blue-500 to-purple-500 
+                      hover:from-blue-400 hover:to-purple-400
+                      text-white px-5 py-2.5 md:px-6 md:py-3 rounded-xl font-bold text-sm md:text-base
+                      shadow-lg shadow-blue-500/30 transition-colors
+                      flex items-center gap-2
+                    "
+                  >
+                    <Sparkles size={18} /> Nueva Partida
+                  </motion.button>
+                </div>
               </motion.div>
             ) : !gameStarted ? (
               // Not started state

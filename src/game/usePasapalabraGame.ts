@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { Question, STATUS, INITIAL_TIME, GameState } from './types';
-import { INITIAL_STATE, DEFAULT_QUESTIONS_A, DEFAULT_QUESTIONS_B } from './defaultQuestions';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useImmer } from 'use-immer';
+import { Question, STATUS, INITIAL_TIME, GameState, MAX_PLAYERS, MIN_PLAYERS, LeaderboardEntry } from './types';
+import { INITIAL_STATE, DEFAULT_QUESTIONS_A, DEFAULT_QUESTIONS_B, getDefaultQuestionsForPlayers } from './defaultQuestions';
 import { validateItem } from './validation';
 import { playSound } from './sound';
 
@@ -31,82 +32,134 @@ const findNextIndex = (list: Question[], startIndex: number): number => {
 };
 
 export const usePasapalabraGame = () => {
-  const [sourceData, setSourceData] = useState<{ A: Question[]; B: Question[] }>({
-    A: DEFAULT_QUESTIONS_A,
-    B: DEFAULT_QUESTIONS_B,
-  });
-  const [roscoA, setRoscoA] = useState<Question[]>(INITIAL_STATE(DEFAULT_QUESTIONS_A));
-  const [roscoB, setRoscoB] = useState<Question[]>(INITIAL_STATE(DEFAULT_QUESTIONS_B));
-  const [activePlayer, setActivePlayer] = useState<'A' | 'B'>('A');
-  const [currentIndexA, setCurrentIndexA] = useState(0);
-  const [currentIndexB, setCurrentIndexB] = useState(0);
+  const initialPlayerNames = ['Jugador 1', 'Jugador 2'];
+  const initialSourceData = [DEFAULT_QUESTIONS_A, DEFAULT_QUESTIONS_B];
+
+  const [sourceData, setSourceData] = useImmer<Question[][]>(initialSourceData);
+  const [roscos, setRoscos] = useImmer<Question[][]>([
+    INITIAL_STATE(DEFAULT_QUESTIONS_A),
+    INITIAL_STATE(DEFAULT_QUESTIONS_B),
+  ]);
+  const [activePlayerIndex, setActivePlayerIndex] = useState(0);
+  const [currentIndices, setCurrentIndices] = useImmer<number[]>([0, 0]);
   const [gameStarted, setGameStarted] = useState(false);
   const [winner, setWinner] = useState<string | null>(null);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[] | null>(null);
   const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [initialTime, setInitialTime] = useState(INITIAL_TIME);
-  const [timeLeftA, setTimeLeftA] = useState(INITIAL_TIME);
-  const [timeLeftB, setTimeLeftB] = useState(INITIAL_TIME);
+  const [timeLeft, setTimeLeft] = useImmer<number[]>([INITIAL_TIME, INITIAL_TIME]);
   const [isPaused, setIsPaused] = useState(true);
   const [prevGameState, setPrevGameState] = useState<GameState | null>(null);
-  const [playerNames, setPlayerNames] = useState<{ A: string; B: string }>({
-    A: 'Jugador A',
-    B: 'Jugador B',
-  });
+  const [playerNames, setPlayerNames] = useImmer<string[]>(initialPlayerNames);
   const [winningReason, setWinningReason] = useState<string | null>(null);
 
-  const currentRosco = activePlayer === 'A' ? roscoA : roscoB;
-  const currentIndex = activePlayer === 'A' ? currentIndexA : currentIndexB;
+  const currentRosco = roscos[activePlayerIndex] || [];
+  const currentIndex = currentIndices[activePlayerIndex] || 0;
   const currentLetterData = currentRosco[currentIndex];
   const isCurrentDataValid = validateItem(currentLetterData);
 
-  const checkWinner = useCallback((rosco1: Question[], rosco2: Question[]) => {
-    const isFinished1 = findNextIndex(rosco1, 0) === -1;
-    const isFinished2 = findNextIndex(rosco2, 0) === -1;
-    if (isFinished1 && isFinished2) {
-      // rosco1 is always A's rosco, rosco2 is always B's rosco
-      const roscoAUpdated = rosco1;
-      const roscoBUpdated = rosco2;
+  const checkWinner = useCallback((currentRoscos: Question[][], currentTimeLeft: number[]) => {
+    // Check if all players have finished (either completed all letters OR ran out of time)
+    const allFinished = currentRoscos.every((rosco, index) => {
+      const hasNoTimeLeft = currentTimeLeft[index] <= 0;
+      const hasCompletedAllLetters = findNextIndex(rosco, 0) === -1;
+      return hasNoTimeLeft || hasCompletedAllLetters;
+    });
+    
+    if (!allFinished) return;
+
+    // Calculate scores for all players
+    const playerStats = currentRoscos.map((rosco, index) => ({
+      index,
+      name: playerNames[index] || `Jugador ${index + 1}`,
+      score: rosco.filter(r => r.status === STATUS.CORRECT).length,
+      errors: rosco.filter(r => r.status === STATUS.INCORRECT).length,
+      timeLeft: currentTimeLeft[index] || 0,
+    }));
+
+    // Sort by score (descending), then errors (ascending), then timeLeft (descending)
+    const sorted = [...playerStats].sort((a, b) => {
+      if (a.score !== b.score) return b.score - a.score;
+      if (a.errors !== b.errors) return a.errors - b.errors;
+      return b.timeLeft - a.timeLeft;
+    });
+
+    // Build leaderboard with ranks and tie detection
+    const leaderboardEntries: LeaderboardEntry[] = [];
+    let currentRank = 1;
+    
+    for (let i = 0; i < sorted.length; i++) {
+      const current = sorted[i];
+      const prev = i > 0 ? sorted[i - 1] : null;
       
-      const scoreA = roscoAUpdated.filter(r => r.status === STATUS.CORRECT).length;
-      const scoreB = roscoBUpdated.filter(r => r.status === STATUS.CORRECT).length;
-      if (scoreA > scoreB) {
-        setWinner(playerNames.A);
-        setWinningReason(`Más aciertos (${scoreA} vs ${scoreB})`);
-      } else if (scoreB > scoreA) {
-        setWinner(playerNames.B);
-        setWinningReason(`Más aciertos (${scoreB} vs ${scoreA})`);
-      } else {
-        // Tiebreaker 1: player with fewer errors wins
-        const errorsA = roscoAUpdated.filter(r => r.status === STATUS.INCORRECT).length;
-        const errorsB = roscoBUpdated.filter(r => r.status === STATUS.INCORRECT).length;
-        
-        if (errorsA < errorsB) {
-          setWinner(playerNames.A);
-          setWinningReason(`Empate en aciertos (${scoreA}), pero menos errores (${errorsA} vs ${errorsB})`);
-        } else if (errorsB < errorsA) {
-          setWinner(playerNames.B);
-          setWinningReason(`Empate en aciertos (${scoreB}), pero menos errores (${errorsB} vs ${errorsA})`);
-        } else {
-          // Tiebreaker 2: player with more remaining time wins
-          if (timeLeftA > timeLeftB) {
-            setWinner(playerNames.A);
-            setWinningReason(`Empate en aciertos (${scoreA}) y errores (${errorsA}), pero menos tiempo usado`);
-          } else if (timeLeftB > timeLeftA) {
-            setWinner(playerNames.B);
-            setWinningReason(`Empate en aciertos (${scoreB}) y errores (${errorsB}), pero menos tiempo usado`);
-          } else {
-            setWinner('Empate');
-            setWinningReason(`${scoreA} aciertos, ${errorsA} errores y mismo tiempo`);
-          }
-        }
+      // Check if this player is tied with the previous one
+      const isTie = prev !== null && 
+        current.score === prev.score && 
+        current.errors === prev.errors && 
+        current.timeLeft === prev.timeLeft;
+      
+      // If tied, use same rank as previous, otherwise increment rank
+      if (!isTie && i > 0) {
+        currentRank = i + 1;
       }
-      if (soundEnabled) playSound('win');
+      
+      leaderboardEntries.push({
+        ...current,
+        rank: currentRank,
+        isTie,
+      });
     }
-  }, [soundEnabled, playerNames, timeLeftA, timeLeftB]);
+
+    setLeaderboard(leaderboardEntries);
+    
+    // Set winner for backward compatibility (first place or tie)
+    const winnerStats = sorted[0];
+    const isTie = sorted.length > 1 && 
+      sorted[0].score === sorted[1].score && 
+      sorted[0].errors === sorted[1].errors && 
+      sorted[0].timeLeft === sorted[1].timeLeft;
+
+    if (isTie) {
+      const tiedPlayers = sorted.filter(p => 
+        p.score === winnerStats.score && 
+        p.errors === winnerStats.errors && 
+        p.timeLeft === winnerStats.timeLeft
+      );
+      
+      if (tiedPlayers.length === currentRoscos.length) {
+        setWinner('Empate');
+        setWinningReason(`${winnerStats.score} aciertos, ${winnerStats.errors} errores y mismo tiempo`);
+      } else {
+        const names = tiedPlayers.map(p => p.name).join(', ');
+        setWinner(names);
+        setWinningReason(`Empate entre ${names} (${winnerStats.score} aciertos, ${winnerStats.errors} errores)`);
+      }
+    } else {
+      setWinner(winnerStats.name);
+      setWinningReason(`Más aciertos (${winnerStats.score})`);
+    }
+
+    if (soundEnabled) playSound('win');
+  }, [soundEnabled, playerNames]);
+
+  const findNextAvailablePlayer = useCallback((startIndex: number): number | null => {
+    const playerCount = roscos.length;
+    for (let i = 1; i < playerCount; i++) {
+      const nextIndex = (startIndex + i) % playerCount;
+      const nextRosco = roscos[nextIndex];
+      const nextPlayerIndex = currentIndices[nextIndex];
+      const nextPlayerTime = timeLeft[nextIndex];
+      
+      if (nextPlayerTime > 0 && findNextIndex(nextRosco, nextPlayerIndex - 1) !== -1) {
+        return nextIndex;
+      }
+    }
+    return null;
+  }, [roscos, currentIndices, timeLeft]);
 
   const handleAction = useCallback((action: 'correct' | 'incorrect' | 'pasapalabra') => {
-    const activePlayerTime = activePlayer === 'A' ? timeLeftA : timeLeftB;
+    const activePlayerTime = timeLeft[activePlayerIndex];
     if (!gameStarted || winner || activePlayerTime <= 0) return;
 
     // Reproducir sonido
@@ -116,117 +169,148 @@ export const usePasapalabraGame = () => {
       else if (action === 'pasapalabra') playSound('pasapalabra');
     }
 
-    // Guardar estado para undo
+    const currentIdx = currentIndices[activePlayerIndex];
+
+    // Guardar estado para undo (antes de modificar)
     setPrevGameState({
-      roscoA: roscoA.map(item => ({ ...item })),
-      roscoB: roscoB.map(item => ({ ...item })),
-      activePlayer,
-      currentIndexA,
-      currentIndexB,
-      timeLeftA,
-      timeLeftB,
+      roscos: roscos.map(rosco => rosco.map(item => ({ ...item }))),
+      activePlayerIndex,
+      currentIndices: [...currentIndices],
+      timeLeft: [...timeLeft],
       winner,
       gameStarted,
       isPaused,
     });
 
-    const newRosco = activePlayer === 'A' ? [...roscoA] : [...roscoB];
-    const currentIdx = activePlayer === 'A' ? currentIndexA : currentIndexB;
+    // Calculate updated roscos BEFORE updating state (for checkWinner)
+    const updatedRoscos: Question[][] = roscos.map((rosco, idx) => 
+      idx === activePlayerIndex 
+        ? rosco.map((item, i) => 
+            i === currentIdx 
+              ? { ...item, status: action === 'correct' ? STATUS.CORRECT : action === 'incorrect' ? STATUS.INCORRECT : STATUS.SKIPPED }
+              : item
+          )
+        : rosco
+    );
 
-    newRosco[currentIdx] = { ...newRosco[currentIdx] };
+    // Update roscos array using immer - much simpler!
+    setRoscos(draft => {
+      if (action === 'correct') draft[activePlayerIndex][currentIdx].status = STATUS.CORRECT;
+      else if (action === 'incorrect') draft[activePlayerIndex][currentIdx].status = STATUS.INCORRECT;
+      else if (action === 'pasapalabra') draft[activePlayerIndex][currentIdx].status = STATUS.SKIPPED;
+    });
 
-    if (action === 'correct') newRosco[currentIdx].status = STATUS.CORRECT;
-    else if (action === 'incorrect') newRosco[currentIdx].status = STATUS.INCORRECT;
-    else if (action === 'pasapalabra') newRosco[currentIdx].status = STATUS.SKIPPED;
-
-    if (activePlayer === 'A') setRoscoA(newRosco);
-    else setRoscoB(newRosco);
-
-    const nextIndex = findNextIndex(newRosco, currentIdx);
+    const nextIndex = findNextIndex(updatedRoscos[activePlayerIndex], currentIdx);
 
     if (nextIndex === -1) {
-      const nextPlayer = activePlayer === 'A' ? 'B' : 'A';
-      setActivePlayer(nextPlayer);
-      setIsPaused(true);
-      // Pass the updated rosco for the current player and the current state for the other player
-      const roscoAForCheck = activePlayer === 'A' ? newRosco : roscoA;
-      const roscoBForCheck = activePlayer === 'A' ? roscoB : newRosco;
-      checkWinner(roscoAForCheck, roscoBForCheck);
-    } else {
-      if (action === 'correct') {
-        if (activePlayer === 'A') setCurrentIndexA(nextIndex);
-        else setCurrentIndexB(nextIndex);
+      // Current player finished, find next available player
+      const nextPlayer = findNextAvailablePlayer(activePlayerIndex);
+      if (nextPlayer !== null) {
+        setActivePlayerIndex(nextPlayer);
+        setIsPaused(true);
       } else {
-        // Incorrecto o Pasapalabra
-        const otherPlayer = activePlayer === 'A' ? 'B' : 'A';
-        const otherRosco = activePlayer === 'A' ? roscoB : roscoA;
-        const otherIndex = activePlayer === 'A' ? currentIndexB : currentIndexA;
-        const otherPlayerTime = activePlayer === 'A' ? timeLeftB : timeLeftA;
+        // All players finished - check winner with current timeLeft state
+        checkWinner(updatedRoscos, timeLeft);
+      }
+    } else {
+      // Update current player's index using immer
+      setCurrentIndices(draft => {
+        draft[activePlayerIndex] = nextIndex;
+      });
 
-        const nextIndexOther = findNextIndex(otherRosco, otherIndex - 1);
+      if (action !== 'correct') {
+        // Incorrecto o Pasapalabra - rotate to next available player
 
-        // Avanzamos el índice del jugador actual
-        if (activePlayer === 'A') setCurrentIndexA(nextIndex);
-        else setCurrentIndexB(nextIndex);
-
-        // Si el OTRO jugador tiene índice válido Y TIENE TIEMPO, cambiamos.
-        if (nextIndexOther !== -1 && otherPlayerTime > 0) {
-          setActivePlayer(otherPlayer);
+        const nextPlayer = findNextAvailablePlayer(activePlayerIndex);
+        if (nextPlayer !== null) {
+          setActivePlayerIndex(nextPlayer);
           setIsPaused(true);
         } else {
-          setIsPaused(true);
+          // Check if game is finished - check winner with current timeLeft state
+          checkWinner(updatedRoscos, timeLeft);
         }
       }
     }
-  }, [gameStarted, winner, activePlayer, roscoA, roscoB, currentIndexA, currentIndexB, timeLeftA, timeLeftB, soundEnabled, checkWinner, isPaused]);
+  }, [gameStarted, winner, activePlayerIndex, roscos, currentIndices, timeLeft, soundEnabled, checkWinner, isPaused, findNextAvailablePlayer, setRoscos, setCurrentIndices]);
 
   const handleUndo = useCallback(() => {
     if (!prevGameState) return;
 
-    setRoscoA(prevGameState.roscoA);
-    setRoscoB(prevGameState.roscoB);
-    setActivePlayer(prevGameState.activePlayer);
-    setCurrentIndexA(prevGameState.currentIndexA);
-    setCurrentIndexB(prevGameState.currentIndexB);
-    setTimeLeftA(prevGameState.timeLeftA);
-    setTimeLeftB(prevGameState.timeLeftB);
+    setRoscos(prevGameState.roscos.map(rosco => rosco.map(item => ({ ...item }))));
+    setActivePlayerIndex(prevGameState.activePlayerIndex);
+    setCurrentIndices(prevGameState.currentIndices);
+    setTimeLeft(prevGameState.timeLeft);
     setWinner(prevGameState.winner);
     setGameStarted(prevGameState.gameStarted);
     setIsPaused(true);
     setPrevGameState(null);
-  }, [prevGameState]);
+  }, [prevGameState, setRoscos, setCurrentIndices, setTimeLeft]);
+
+  const startGame = useCallback(() => {
+    // Start the game - reset statuses and initialize game state
+    const playerCount = roscos.length;
+    
+    // Reset question statuses to PENDING while keeping the words/questions intact
+    setRoscos(draft => {
+      draft.forEach(rosco => {
+        rosco.forEach(item => {
+          item.status = STATUS.PENDING;
+        });
+      });
+    });
+    
+    setCurrentIndices(new Array(playerCount).fill(0));
+    setActivePlayerIndex(0);
+    setWinner(null);
+    setLeaderboard(null);
+    setWinningReason(null);
+    setGameStarted(true); // Start the game
+    setIsPanelCollapsed(false);
+    setTimeLeft(new Array(playerCount).fill(initialTime));
+    setIsPaused(true);
+    setPrevGameState(null);
+  }, [roscos.length, initialTime, setRoscos, setCurrentIndices, setTimeLeft]);
 
   const resetGame = useCallback(() => {
-    setRoscoA(INITIAL_STATE(sourceData.A));
-    setRoscoB(INITIAL_STATE(sourceData.B));
-    setCurrentIndexA(0);
-    setCurrentIndexB(0);
-    setActivePlayer('A');
+    // Reset game state to configuration point, but preserve the roscos words/questions
+    const playerCount = roscos.length;
+    
+    // Reset question statuses to PENDING while keeping the words/questions intact
+    setRoscos(draft => {
+      draft.forEach(rosco => {
+        rosco.forEach(item => {
+          item.status = STATUS.PENDING;
+        });
+      });
+    });
+    
+    setCurrentIndices(new Array(playerCount).fill(0));
+    setActivePlayerIndex(0);
     setWinner(null);
+    setLeaderboard(null);
     setWinningReason(null);
-    setGameStarted(true);
+    setGameStarted(false); // Reset to configuration point
     setIsPanelCollapsed(false);
-    setTimeLeftA(initialTime);
-    setTimeLeftB(initialTime);
+    setTimeLeft(new Array(playerCount).fill(initialTime));
     setIsPaused(true);
     setPrevGameState(null);
-  }, [sourceData, initialTime]);
+  }, [roscos.length, initialTime, setRoscos, setCurrentIndices, setTimeLeft]);
 
-  const updateSourceData = useCallback((newData: { A: Question[]; B: Question[] }) => {
+  const updateSourceData = useCallback((newData: Question[][]) => {
     setSourceData(newData);
-    setRoscoA(INITIAL_STATE(newData.A));
-    setRoscoB(INITIAL_STATE(newData.B));
-    setCurrentIndexA(0);
-    setCurrentIndexB(0);
-    setActivePlayer('A');
+    const newRoscos = newData.map(questions => INITIAL_STATE(questions));
+    const playerCount = newRoscos.length;
+    setRoscos(newRoscos);
+    setCurrentIndices(new Array(playerCount).fill(0));
+    setActivePlayerIndex(0);
     setWinner(null);
+    setLeaderboard(null);
     setWinningReason(null);
     setGameStarted(true);
-    setTimeLeftA(initialTime);
-    setTimeLeftB(initialTime);
+    setTimeLeft(new Array(playerCount).fill(initialTime));
     setIsPaused(true);
     setPrevGameState(null);
-  }, [initialTime]);
+  }, [initialTime, setSourceData, setRoscos, setCurrentIndices, setTimeLeft]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -279,104 +363,146 @@ export const usePasapalabraGame = () => {
   }, [handleAction, handleUndo, prevGameState]);
 
   // Handle time running out for a player
-  const handleTimeOut = useCallback((timedOutPlayer: 'A' | 'B') => {
-    const otherPlayer = timedOutPlayer === 'A' ? 'B' : 'A';
-    const otherTime = timedOutPlayer === 'A' ? timeLeftB : timeLeftA;
-    const otherRosco = timedOutPlayer === 'A' ? roscoB : roscoA;
-    const otherIndex = timedOutPlayer === 'A' ? currentIndexB : currentIndexA;
-    const hasQuestionsLeft = findNextIndex(otherRosco, otherIndex - 1) !== -1;
-
-    if (otherTime > 0 && hasQuestionsLeft) {
-      // Switch to other player
-      setActivePlayer(otherPlayer);
+  const handleTimeOut = useCallback((timedOutPlayerIndex: number, currentTimeLeft: number[]) => {
+    const nextPlayer = findNextAvailablePlayer(timedOutPlayerIndex);
+    
+    if (nextPlayer !== null) {
+      // Switch to next available player
+      setActivePlayerIndex(nextPlayer);
       setIsPaused(true);
     } else {
-      // Both players are done - determine winner
-      const scoreA = roscoA.filter(r => r.status === STATUS.CORRECT).length;
-      const scoreB = roscoB.filter(r => r.status === STATUS.CORRECT).length;
-      
-      if (scoreA > scoreB) {
-        setWinner(playerNames.A);
-        setWinningReason(`Más aciertos (${scoreA} vs ${scoreB})`);
-      } else if (scoreB > scoreA) {
-        setWinner(playerNames.B);
-        setWinningReason(`Más aciertos (${scoreB} vs ${scoreA})`);
-      } else {
-        // Tiebreaker 1: player with fewer errors wins
-        const errorsA = roscoA.filter(r => r.status === STATUS.INCORRECT).length;
-        const errorsB = roscoB.filter(r => r.status === STATUS.INCORRECT).length;
-        
-        if (errorsA < errorsB) {
-          setWinner(playerNames.A);
-          setWinningReason(`Empate en aciertos (${scoreA}), pero menos errores (${errorsA} vs ${errorsB})`);
-        } else if (errorsB < errorsA) {
-          setWinner(playerNames.B);
-          setWinningReason(`Empate en aciertos (${scoreB}), pero menos errores (${errorsB} vs ${errorsA})`);
-        } else {
-          // Both tied on score and errors - it's a draw
-          // (time comparison is unreliable when both ran out of time)
-          setWinner('Empate');
-          setWinningReason(`${scoreA} aciertos y ${errorsA} errores`);
-        }
-      }
-      if (soundEnabled) playSound('win');
+      // All players are done - determine winner with current timeLeft state
+      checkWinner(roscos, currentTimeLeft);
     }
-  }, [timeLeftA, timeLeftB, roscoA, roscoB, currentIndexA, currentIndexB, playerNames, soundEnabled]);
+  }, [roscos, findNextAvailablePlayer, checkWinner]);
 
-  // Timer effect
+  // Timer effect - using requestAnimationFrame for accurate timing
+  const timerRef = useRef<{ lastTimestamp: number | null; previousPlayerIndex: number | null }>({
+    lastTimestamp: null,
+    previousPlayerIndex: null,
+  });
+
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
+    let animationFrameId: number | null = null;
     const isRunning = gameStarted && !winner && !isPaused && !isPanelCollapsed;
 
     if (isRunning) {
-      interval = setInterval(() => {
-        if (activePlayer === 'A') {
-          setTimeLeftA(prev => {
-            const newTime = Math.max(0, prev - 10);
-            if (newTime === 0 && prev > 0) {
-              // Time just ran out - schedule timeout handling
-              setTimeout(() => handleTimeOut('A'), 0);
+      // Reset timestamp when player changes
+      if (timerRef.current.previousPlayerIndex !== activePlayerIndex) {
+        timerRef.current.lastTimestamp = null;
+        timerRef.current.previousPlayerIndex = activePlayerIndex;
+      }
+
+      const tick = (timestamp: number) => {
+        if (timerRef.current.lastTimestamp === null) {
+          timerRef.current.lastTimestamp = timestamp;
+        }
+        
+        const elapsed = timestamp - timerRef.current.lastTimestamp;
+        timerRef.current.lastTimestamp = timestamp;
+        
+        if (elapsed > 0) {
+          setTimeLeft(draft => {
+            const currentTime = draft[activePlayerIndex];
+            const updatedTime = Math.max(0, currentTime - elapsed);
+            draft[activePlayerIndex] = updatedTime;
+            
+            if (updatedTime === 0 && currentTime > 0) {
+              // Time just ran out - create a copy of the draft before scheduling timeout
+              // (draft proxy will be revoked after this callback completes)
+              const timeLeftCopy = [...draft];
+              setTimeout(() => handleTimeOut(activePlayerIndex, timeLeftCopy), 0);
             }
-            return newTime;
-          });
-        } else {
-          setTimeLeftB(prev => {
-            const newTime = Math.max(0, prev - 10);
-            if (newTime === 0 && prev > 0) {
-              // Time just ran out - schedule timeout handling
-              setTimeout(() => handleTimeOut('B'), 0);
-            }
-            return newTime;
+            return draft;
           });
         }
-      }, 10);
+        
+        animationFrameId = requestAnimationFrame(tick);
+      };
+      
+      animationFrameId = requestAnimationFrame(tick);
+    } else {
+      // Reset timestamp when paused or stopped
+      timerRef.current.lastTimestamp = null;
+      timerRef.current.previousPlayerIndex = null;
     }
+    
     return () => {
-      if (interval) clearInterval(interval);
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+      }
     };
-  }, [gameStarted, winner, isPaused, isPanelCollapsed, activePlayer, handleTimeOut]);
+  }, [gameStarted, winner, isPaused, isPanelCollapsed, activePlayerIndex, handleTimeOut, setTimeLeft]);
 
   const updateInitialTime = useCallback((newTime: number) => {
     setInitialTime(newTime);
     if (!gameStarted) {
-      setTimeLeftA(newTime);
-      setTimeLeftB(newTime);
+      setTimeLeft(draft => {
+        draft.fill(newTime);
+        // Ensure array has correct length
+        while (draft.length < playerNames.length) {
+          draft.push(newTime);
+        }
+        draft.splice(playerNames.length);
+      });
     }
-  }, [gameStarted]);
+  }, [gameStarted, playerNames.length, setTimeLeft]);
+
+
+  const handlePlayerNamesChange = useCallback((newNames: string[]) => {
+    if (newNames.length < MIN_PLAYERS || newNames.length > MAX_PLAYERS) return;
+    if (gameStarted) return; // Don't allow changes during game
+    
+    const targetLength = newNames.length;
+    const currentLength = roscos.length;
+    
+    setPlayerNames(newNames);
+    
+    // Sync arrays immediately when names change - using immer for cleaner code
+    if (targetLength > currentLength) {
+      const additionalQuestions = getDefaultQuestionsForPlayers(targetLength - currentLength);
+      setRoscos(draft => {
+        draft.push(...additionalQuestions.map(q => INITIAL_STATE(q)));
+      });
+      setTimeLeft(draft => {
+        draft.push(...new Array(targetLength - currentLength).fill(initialTime));
+      });
+      setCurrentIndices(draft => {
+        draft.push(...new Array(targetLength - currentLength).fill(0));
+      });
+      setSourceData(draft => {
+        draft.push(...additionalQuestions);
+      });
+    } else if (targetLength < currentLength) {
+      setRoscos(draft => {
+        draft.splice(targetLength);
+      });
+      setTimeLeft(draft => {
+        draft.splice(targetLength);
+      });
+      setCurrentIndices(draft => {
+        draft.splice(targetLength);
+      });
+      setSourceData(draft => {
+        draft.splice(targetLength);
+      });
+      if (activePlayerIndex >= targetLength) {
+        setActivePlayerIndex(0);
+      }
+    }
+  }, [gameStarted, roscos.length, initialTime, activePlayerIndex, setPlayerNames, setRoscos, setTimeLeft, setCurrentIndices, setSourceData]);
 
   return {
-    roscoA,
-    roscoB,
-    activePlayer,
-    currentIndexA,
-    currentIndexB,
+    roscos,
+    activePlayerIndex,
+    currentIndices,
     gameStarted,
     winner,
+    leaderboard,
     winningReason,
     isPanelCollapsed,
     soundEnabled,
-    timeLeftA,
-    timeLeftB,
+    timeLeft,
     isPaused,
     prevGameState,
     currentLetterData,
@@ -386,9 +512,10 @@ export const usePasapalabraGame = () => {
     setIsPanelCollapsed,
     setSoundEnabled,
     setIsPaused,
-    setPlayerNames,
+    setPlayerNames: handlePlayerNamesChange,
     handleAction,
     handleUndo,
+    startGame,
     resetGame,
     updateSourceData,
     updateInitialTime,

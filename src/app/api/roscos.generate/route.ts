@@ -7,10 +7,11 @@ import { Question } from '@/game/types';
 
 export async function POST(request: NextRequest) {
   try {
-    const { theme, difficulty } = await request.json();
+    const { theme, difficulty, playerCount } = await request.json();
 
     const themeValue = theme?.trim() || 'CULTURA GENERAL';
     const difficultyValue = difficulty?.trim() || 'MEDIO';
+    const playerCountValue = Math.max(2, Math.min(10, parseInt(playerCount) || 2));
 
     const prompt = `Actúa como un diseñador experto de juegos de palabras y trivia. Tu tarea es generar una base de datos de preguntas para el juego "Pasapalabra" (o "El Rosco").
 
@@ -40,37 +41,42 @@ Adapta el tono a la temática elegida.
 
 Estructura del Juego:
 
-Debes generar dos roscos completos (roscoA y roscoB).
+Debes generar ${playerCountValue} roscos completos.
 
 Cada rosco debe contener exactamente 27 objetos (De la A a la Z, incluyendo la Ñ).
 
 El orden debe ser alfabético.
 
-IMPORTANTE - Unicidad entre Roscos: roscoA y roscoB deben tener palabras completamente diferentes. NO puede haber ninguna palabra compartida entre los dos roscos. Cada palabra respuesta debe ser única y exclusiva de su rosco correspondiente. Verifica que no existan duplicados entre roscoA y roscoB.
+IMPORTANTE - Unicidad entre Roscos: Todos los roscos deben tener palabras completamente diferentes entre sí. NO puede haber ninguna palabra compartida entre ningún par de roscos. Cada palabra respuesta debe ser única y exclusiva de su rosco correspondiente. Verifica que no existan duplicados entre ningún par de roscos.
 
 Formato de Salida (Estricto): Devuelve únicamente un objeto JSON válido. No añadas texto introductorio ni explicaciones fuera del JSON. Usa exactamente este esquema:
 
 {
-  "roscoA": [
-    {
-      "letter": "A",
-      "answer": "Palabra",
-      "description": "Definición clara aquí.",
-      "condition": "Empieza por A"
-    },
-    {
-      "letter": "Ñ",
-      "answer": "Caña",
-      "description": "Tallo de las plantas gramíneas, generalmente hueco y con nudos.",
-      "condition": "Contiene la Ñ"
-    }
-    // ... completar resto del abecedario
-  ],
-  "roscoB": [
-    // ... completar segundo set completo
+  "roscos": [
+    [
+      {
+        "letter": "A",
+        "answer": "Palabra",
+        "description": "Definición clara aquí.",
+        "condition": "Empieza por A"
+      },
+      {
+        "letter": "Ñ",
+        "answer": "Caña",
+        "description": "Tallo de las plantas gramíneas, generalmente hueco y con nudos.",
+        "condition": "Contiene la Ñ"
+      }
+      // ... completar resto del abecedario (27 letras en total)
+    ],
+    // ... repetir para cada uno de los ${playerCountValue} roscos
   ]
 }
-Asegúrate de que el campo condition refleje la realidad (si la palabra empieza o contiene la letra).`;
+
+Asegúrate de que:
+- El array "roscos" contenga exactamente ${playerCountValue} arrays internos
+- Cada array interno contenga exactamente 27 objetos (una por cada letra del abecedario español)
+- El campo condition refleje la realidad (si la palabra empieza o contiene la letra)
+- No haya palabras duplicadas entre ningún par de roscos`;
 
     const result = await generateObject({
       model: openrouter(getModel()),
@@ -78,9 +84,16 @@ Asegúrate de que el campo condition refleje la realidad (si la palabra empieza 
       prompt,
     });
 
-    if (!result.object.roscoA || !result.object.roscoB) {
+    if (!result.object.roscos || !Array.isArray(result.object.roscos)) {
       return NextResponse.json(
         { error: 'Formato de respuesta inválido' },
+        { status: 500 }
+      );
+    }
+
+    if (result.object.roscos.length !== playerCountValue) {
+      return NextResponse.json(
+        { error: `Se esperaban ${playerCountValue} roscos, se recibieron ${result.object.roscos.length}` },
         { status: 500 }
       );
     }
@@ -99,12 +112,10 @@ Asegúrate de que el campo condition refleje la realidad (si la palabra empieza 
       });
     };
 
-    const cleanRoscoA = processRosco(result.object.roscoA);
-    const cleanRoscoB = processRosco(result.object.roscoB);
+    const cleanRoscos = result.object.roscos.map((rosco: Question[]) => processRosco(rosco));
 
     return NextResponse.json({
-      roscoA: cleanRoscoA,
-      roscoB: cleanRoscoB,
+      roscos: cleanRoscos,
     });
   } catch (error) {
     console.error('Error generating roscos:', error);

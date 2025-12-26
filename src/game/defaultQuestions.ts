@@ -62,3 +62,14 @@ export const DEFAULT_QUESTIONS_B: Question[] = [
 
 export const INITIAL_STATE = (questions: Question[]): Question[] =>
   questions.map(q => ({ ...q, status: STATUS.PENDING }));
+
+// Helper function to get default questions for N players
+// For now, we only have 2 sets, so we'll cycle through them
+export const getDefaultQuestionsForPlayers = (playerCount: number): Question[][] => {
+  const questions: Question[][] = [];
+  for (let i = 0; i < playerCount; i++) {
+    // Alternate between A and B sets, or use A for all if only 2 sets available
+    questions.push(i % 2 === 0 ? DEFAULT_QUESTIONS_A : DEFAULT_QUESTIONS_B);
+  }
+  return questions;
+};

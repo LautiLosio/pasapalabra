@@ -10,8 +10,7 @@ export const QuestionSchema = z.object({
 export const RoscoSchema = z.array(QuestionSchema).length(27);
 
 export const GenerateRoscosResponseSchema = z.object({
-  roscoA: RoscoSchema,
-  roscoB: RoscoSchema,
+  roscos: z.array(RoscoSchema).min(2).max(10),
 });
 
 export type GenerateRoscosResponse = z.infer<typeof GenerateRoscosResponseSchema>;
