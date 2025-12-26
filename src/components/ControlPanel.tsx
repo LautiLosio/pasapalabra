@@ -222,14 +222,14 @@ export const ControlPanel = ({
                 <button
                   onClick={() => onAction('correct')}
                   className="col-span-2 h-11 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white rounded-lg shadow-lg shadow-green-500/30 transition-[background,box-shadow] duration-150 btn-press flex items-center justify-center"
-                  title="Acierto (S)"
+                  title="Acierto (A)"
                 >
                   <Check size={26} strokeWidth={3} />
                 </button>
                 <button
                   onClick={() => onAction('incorrect')}
                   className="h-11 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-400 hover:to-rose-400 text-white rounded-lg shadow-lg shadow-red-500/30 transition-[background,box-shadow] duration-150 btn-press flex items-center justify-center"
-                  title="Fallo (N)"
+                  title="Fallo (F)"
                 >
                   <X size={22} strokeWidth={3} />
                 </button>
