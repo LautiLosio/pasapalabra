@@ -19,11 +19,8 @@ export const HeaderBar = ({
     <header className="glass-light px-4 md:px-6 py-3 flex justify-between items-center z-20 border-b border-border">
       {/* Logo */}
       <div className="flex items-center gap-3">
-        <div className="relative">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-orange-500 flex items-center justify-center">
-            <Orbit size={20} className="text-white" />
-          </div>
-          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-orange-500 blur-lg opacity-50" />
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-orange-500 flex items-center justify-center">
+          <Orbit size={20} className="text-white" />
         </div>
         <div className="hidden md:block">
           <h1 className="text-xl font-[family-name:var(--font-fredoka)] font-bold text-white tracking-tight">
@@ -44,7 +41,7 @@ export const HeaderBar = ({
         <button
           onClick={onSoundToggle}
           className={`
-            p-2.5 rounded-xl transition-all btn-press
+            p-2.5 rounded-xl transition-[background,color] duration-150 btn-press
             ${soundEnabled
               ? 'bg-white/10 text-white hover:bg-white/15'
               : 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
@@ -63,7 +60,7 @@ export const HeaderBar = ({
             bg-gradient-to-r from-purple-600 to-pink-600 
             hover:from-purple-500 hover:to-pink-500
             px-4 py-2.5 rounded-xl text-xs md:text-sm font-bold text-white
-            transition-all shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40
+            transition-[background,box-shadow] duration-150 shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40
             btn-press
           "
         >
@@ -81,7 +78,7 @@ export const HeaderBar = ({
               bg-gradient-to-r from-green-500 to-emerald-500 
               hover:from-green-400 hover:to-emerald-400
               px-5 py-2.5 rounded-xl font-bold text-white text-sm md:text-base
-              transition-all shadow-lg shadow-green-500/30 hover:shadow-green-500/50
+              transition-[background,box-shadow] duration-150 shadow-lg shadow-green-500/30 hover:shadow-green-500/50
               btn-press
             "
           >
@@ -95,7 +92,7 @@ export const HeaderBar = ({
               flex items-center gap-2 
               bg-white/10 hover:bg-white/15
               px-4 py-2.5 rounded-xl text-sm text-white/80 hover:text-white
-              transition-all btn-press
+              transition-[background,color] duration-150 btn-press
             "
           >
             <RotateCcw size={16} /> 

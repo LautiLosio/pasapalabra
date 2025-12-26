@@ -60,6 +60,7 @@ export default function Home() {
             playerName={playerNames.A}
             onPlayerNameChange={(name) => setPlayerNames({ ...playerNames, A: name })}
             hasWinner={!!winner}
+            gameStarted={gameStarted}
           />
           <RoscoCircle
             data={roscoB}
@@ -71,6 +72,7 @@ export default function Home() {
             playerName={playerNames.B}
             onPlayerNameChange={(name) => setPlayerNames({ ...playerNames, B: name })}
             hasWinner={!!winner}
+            gameStarted={gameStarted}
           />
         </section>
 

@@ -1,4 +1,5 @@
 import { Check, X, SkipForward, Trophy, ChevronDown, ChevronUp, Pause, Play, Undo2, AlertTriangle, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Question } from '@/game/types';
 
 interface ControlPanelProps {
@@ -37,9 +38,8 @@ export const ControlPanel = ({
   return (
     <section
       className={`
-        w-full glass border-t border-border z-10 flex-shrink-0 relative 
-        transition-all duration-300 ease-in-out
-        ${isCollapsed ? 'h-0 border-t-0' : 'h-auto'}
+        w-full glass z-10 flex-shrink-0 relative 
+        ${isCollapsed ? 'border-t-0' : 'border-t border-border'}
       `}
     >
       {/* Toggle button */}
@@ -65,64 +65,100 @@ export const ControlPanel = ({
         )}
       </button>
 
-      <div
-        className={`overflow-hidden transition-all duration-300 ${
-          isCollapsed ? 'opacity-0 invisible' : 'opacity-100 visible'
-        }`}
-      >
-        <div className="max-w-6xl mx-auto px-3 py-2 md:p-4 w-full">
-          {winner ? (
-            // Winner state - stacks on mobile
-            <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 animate-slide-up py-3 md:py-4">
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  <Trophy size={40} className="text-yellow-400 md:w-14 md:h-14" />
-                  <div className="absolute inset-0 blur-xl bg-yellow-400/30" />
-                </div>
-                <div className="text-center md:text-left">
-                  <h2 className="text-xl md:text-3xl font-[family-name:var(--font-fredoka)] font-bold text-white">
-                    ¡Juego Terminado!
-                  </h2>
-                  <p className="text-base md:text-lg text-white/60">
-                    Ganador:{' '}
-                    <span className={`font-bold ${winner === playerNames.A ? 'text-blue-400' : winner === playerNames.B ? 'text-orange-400' : ''}`}>
-                      {winner}
-                    </span>
-                  </p>
-                  {winningReason && (
-                    <p className="text-xs md:text-sm text-white/50 mt-1">
-                      {winningReason}
-                    </p>
-                  )}
-                </div>
-              </div>
-              <button
-                onClick={onReset}
-                className="
-                  bg-gradient-to-r from-blue-500 to-purple-500 
-                  hover:from-blue-400 hover:to-purple-400
-                  text-white px-5 py-2.5 md:px-6 md:py-3 rounded-xl font-bold text-sm md:text-base
-                  shadow-lg shadow-blue-500/30 transition-all btn-press
-                  flex items-center gap-2
-                "
+      <AnimatePresence>
+        {!isCollapsed && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 28, mass: 0.8 }}
+            className="overflow-hidden"
+          >
+            <div className="max-w-6xl mx-auto px-3 py-2 md:p-4 w-full">
+              <AnimatePresence mode="wait">
+            {winner ? (
+              // Winner state - stacks on mobile
+              <motion.div
+                key="winner"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 py-3 md:py-4"
               >
-                <Sparkles size={18} /> Nueva Partida
-              </button>
-            </div>
-          ) : !gameStarted ? (
-            // Not started state
-            <div className="text-center text-white/40 py-6 animate-slide-up">
-              <p className="text-lg">Presiona <span className="text-green-400 font-semibold">Iniciar</span> para comenzar la partida</p>
-            </div>
-          ) : (
-            // Active game state - vertical on mobile, horizontal on desktop
-            <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4 animate-slide-up">
+                <div className="flex items-center gap-4">
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.15, type: 'spring', stiffness: 200, damping: 12 }}
+                    className="relative"
+                  >
+                    <Trophy size={40} className="text-yellow-400 md:w-14 md:h-14" />
+                    <div className="absolute inset-0 blur-xl bg-yellow-400/30" />
+                  </motion.div>
+                  <div className="text-center md:text-left">
+                    <h2 className="text-xl md:text-3xl font-[family-name:var(--font-fredoka)] font-bold text-white">
+                      ¡Juego Terminado!
+                    </h2>
+                    <p className="text-base md:text-lg text-white/60">
+                      Ganador:{' '}
+                      <span className={`font-bold ${winner === playerNames.A ? 'text-blue-400' : winner === playerNames.B ? 'text-orange-400' : ''}`}>
+                        {winner}
+                      </span>
+                    </p>
+                    {winningReason && (
+                      <p className="text-xs md:text-sm text-white/50 mt-1">
+                        {winningReason}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.25 }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={onReset}
+                  className="
+                    bg-gradient-to-r from-blue-500 to-purple-500 
+                    hover:from-blue-400 hover:to-purple-400
+                    text-white px-5 py-2.5 md:px-6 md:py-3 rounded-xl font-bold text-sm md:text-base
+                    shadow-lg shadow-blue-500/30 transition-colors
+                    flex items-center gap-2
+                  "
+                >
+                  <Sparkles size={18} /> Nueva Partida
+                </motion.button>
+              </motion.div>
+            ) : !gameStarted ? (
+              // Not started state
+              <motion.div
+                key="not-started"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="text-center text-white/40 py-6"
+              >
+                <p className="text-lg">Presiona <span className="text-green-400 font-semibold">Iniciar</span> para comenzar la partida</p>
+              </motion.div>
+            ) : (
+              // Active game state - vertical on mobile, horizontal on desktop
+              <motion.div
+                key="active"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.25 }}
+                className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4"
+              >
               {/* Desktop: Left utility buttons */}
               <div className="hidden md:flex flex-col gap-1.5 flex-shrink-0">
                 <button
                   onClick={onPauseToggle}
                   className={`
-                    w-10 h-10 flex items-center justify-center rounded-lg transition-all btn-press border
+                    w-10 h-10 flex items-center justify-center rounded-lg transition-colors duration-150 btn-press border
                     ${isPaused
                       ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30 border-green-500/30'
                       : 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border-amber-500/30'
@@ -136,7 +172,7 @@ export const ControlPanel = ({
                   onClick={onUndo}
                   disabled={!prevGameState}
                   className={`
-                    w-10 h-10 flex items-center justify-center rounded-lg transition-all btn-press
+                    w-10 h-10 flex items-center justify-center rounded-lg transition-colors duration-150 btn-press
                     ${prevGameState
                       ? 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 border border-yellow-500/30'
                       : 'bg-white/5 text-white/20 border border-white/10'
@@ -185,21 +221,21 @@ export const ControlPanel = ({
               <div className="hidden md:grid grid-cols-2 gap-1.5 flex-shrink-0 w-32">
                 <button
                   onClick={() => onAction('correct')}
-                  className="col-span-2 h-11 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white rounded-lg shadow-lg shadow-green-500/30 transition-all btn-press flex items-center justify-center"
+                  className="col-span-2 h-11 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white rounded-lg shadow-lg shadow-green-500/30 transition-[background,box-shadow] duration-150 btn-press flex items-center justify-center"
                   title="Acierto (S)"
                 >
                   <Check size={26} strokeWidth={3} />
                 </button>
                 <button
                   onClick={() => onAction('incorrect')}
-                  className="h-11 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-400 hover:to-rose-400 text-white rounded-lg shadow-lg shadow-red-500/30 transition-all btn-press flex items-center justify-center"
+                  className="h-11 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-400 hover:to-rose-400 text-white rounded-lg shadow-lg shadow-red-500/30 transition-[background,box-shadow] duration-150 btn-press flex items-center justify-center"
                   title="Fallo (N)"
                 >
                   <X size={22} strokeWidth={3} />
                 </button>
                 <button
                   onClick={() => onAction('pasapalabra')}
-                  className="h-11 bg-white/10 hover:bg-white/15 text-white/80 hover:text-white rounded-lg border border-white/10 transition-all btn-press flex items-center justify-center"
+                  className="h-11 bg-white/10 hover:bg-white/15 text-white/80 hover:text-white rounded-lg border border-white/10 transition-[background,color] duration-150 btn-press flex items-center justify-center"
                   title="Pasapalabra (P)"
                 >
                   <SkipForward size={22} strokeWidth={2.5} />
@@ -211,7 +247,7 @@ export const ControlPanel = ({
                 <button
                   onClick={onPauseToggle}
                   className={`
-                    w-11 h-14 flex items-center justify-center rounded-xl transition-all btn-press border flex-shrink-0
+                    w-11 h-14 flex items-center justify-center rounded-xl transition-colors duration-150 btn-press border flex-shrink-0
                     ${isPaused
                       ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30 border-green-500/30'
                       : 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border-amber-500/30'
@@ -225,7 +261,7 @@ export const ControlPanel = ({
                   onClick={onUndo}
                   disabled={!prevGameState}
                   className={`
-                    w-11 h-14 flex items-center justify-center rounded-xl transition-all btn-press flex-shrink-0
+                    w-11 h-14 flex items-center justify-center rounded-xl transition-colors duration-150 btn-press flex-shrink-0
                     ${prevGameState
                       ? 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 border border-yellow-500/30'
                       : 'bg-white/5 text-white/20 border border-white/10'
@@ -237,30 +273,33 @@ export const ControlPanel = ({
                 </button>
                 <button
                   onClick={() => onAction('correct')}
-                  className="flex-1 h-14 max-w-[100px] bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white rounded-xl shadow-lg shadow-green-500/30 transition-all btn-press flex items-center justify-center"
+                  className="flex-1 h-14 max-w-[100px] bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white rounded-xl shadow-lg shadow-green-500/30 transition-[background,box-shadow] duration-150 btn-press flex items-center justify-center"
                   title="Acierto"
                 >
                   <Check size={30} strokeWidth={3} />
                 </button>
                 <button
                   onClick={() => onAction('incorrect')}
-                  className="flex-1 h-14 max-w-[100px] bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-400 hover:to-rose-400 text-white rounded-xl shadow-lg shadow-red-500/30 transition-all btn-press flex items-center justify-center"
+                  className="flex-1 h-14 max-w-[100px] bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-400 hover:to-rose-400 text-white rounded-xl shadow-lg shadow-red-500/30 transition-[background,box-shadow] duration-150 btn-press flex items-center justify-center"
                   title="Fallo"
                 >
                   <X size={26} strokeWidth={3} />
                 </button>
                 <button
                   onClick={() => onAction('pasapalabra')}
-                  className="flex-1 h-14 max-w-[100px] bg-white/10 hover:bg-white/15 text-white/80 hover:text-white rounded-xl border border-white/10 transition-all btn-press flex items-center justify-center"
+                  className="flex-1 h-14 max-w-[100px] bg-white/10 hover:bg-white/15 text-white/80 hover:text-white rounded-xl border border-white/10 transition-[background,color] duration-150 btn-press flex items-center justify-center"
                   title="Pasapalabra"
                 >
                   <SkipForward size={26} strokeWidth={2.5} />
                 </button>
               </div>
-            </div>
+            </motion.div>
           )}
-        </div>
-      </div>
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 };

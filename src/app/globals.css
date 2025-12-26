@@ -33,7 +33,7 @@
   --border-bright: rgba(255, 255, 255, 0.15);
   
   /* Rosco sizing - responsive */
-  --rosco-size: min(400px, 85vw, 50vh);
+  --rosco-size: min(420px, 85vw, 55vh);
   --rosco-offset: min(230px, 30vw);
 }
 
@@ -84,20 +84,18 @@ body {
   box-shadow: 0 0 15px var(--incorrect-glow), 0 0 30px var(--incorrect-glow);
 }
 
-/* Letter pulsing animation for current letter */
-@keyframes letter-pulse {
+/* Letter pulsing glow animation for current letter */
+@keyframes letter-glow {
   0%, 100% {
-    transform: translate(-50%, -50%) scale(1);
-    box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.7);
+    box-shadow: 0 0 15px 4px rgba(250, 204, 21, 0.5);
   }
   50% {
-    transform: translate(-50%, -50%) scale(1.15);
-    box-shadow: 0 0 20px 8px rgba(250, 204, 21, 0);
+    box-shadow: 0 0 25px 10px rgba(250, 204, 21, 0.3);
   }
 }
 
-.letter-active {
-  animation: letter-pulse 1.2s ease-in-out infinite;
+.letter-active-glow {
+  animation: letter-glow 1.2s ease-in-out infinite;
 }
 
 /* Rosco ring glow animation */
@@ -149,17 +147,21 @@ body {
 .stagger-4 { animation-delay: 0.08s; }
 .stagger-5 { animation-delay: 0.1s; }
 
-/* Glass morphism */
+/* Glass morphism - GPU optimized */
 .glass {
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(12px);
   border: 1px solid var(--border);
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 .glass-light {
   background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(20px);
   border: 1px solid var(--border-bright);
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 /* Timer urgency states */
@@ -182,13 +184,15 @@ body {
   animation: timer-pulse 0.4s ease-in-out infinite;
 }
 
-/* Smooth button press */
+/* Smooth button press - GPU accelerated */
 .btn-press {
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  transition: transform 0.1s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.15s ease;
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 .btn-press:active {
-  transform: scale(0.95);
+  transform: scale(0.95) translateZ(0);
 }
 
 /* Scrollbar styling */
@@ -209,51 +213,65 @@ body {
   background: rgba(255, 255, 255, 0.2);
 }
 
-/* Rosco transition for centering */
-.rosco-transition {
-  transition: 
-    transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1),
-    opacity 0.5s ease-out,
-    filter 0.5s ease-out,
-    scale 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-/* Public mode / Winner - side by side on desktop, stacked on mobile */
-.rosco-public {
-  position: absolute;
-  transition: left 0.4s, top 0.4s, transform 0.4s, opacity 0.3s ease-out, filter 0.3s ease-out;
-}
-
-/* Mobile: stack vertically */
-@media (max-width: 767px) {
-  .rosco-public {
-    left: 50% !important;
-    transform: translate(-50%, -50%) scale(0.7) !important;
-  }
-  .rosco-public-a { top: 35% !important; }
-  .rosco-public-b { top: 75% !important; }
-}
-
-/* Desktop: side by side */
-@media (min-width: 768px) {
-  .rosco-public {
-    top: 50% !important;
-    transform: translate(-50%, -50%) !important;
-  }
-  .rosco-public-a { left: calc(50% - var(--rosco-offset)) !important; }
-  .rosco-public-b { left: calc(50% + var(--rosco-offset)) !important; }
-}
-
-/* Rosco ring sizing - responsive */
+/* Rosco ring sizing - responsive + GPU optimized */
 .rosco-ring {
   width: var(--rosco-size);
   height: var(--rosco-size);
+  transform: translateZ(0);
+  will-change: transform, opacity;
+  contain: layout;
 }
 
-/* Rosco letter sizing - responsive */
+/* Rosco letter sizing - responsive + GPU optimized */
 .rosco-letter {
-  width: clamp(1.75rem, 8%, 2.5rem);
-  height: clamp(1.75rem, 8%, 2.5rem);
+  width: clamp(34px, 10%, 44px);
+  height: clamp(34px, 10%, 44px);
+  will-change: transform;
+  contain: layout style;
+}
+
+/* Letter popover tooltip */
+.letter-popover {
+  position: absolute;
+  padding: 8px 12px;
+  border: 1px solid var(--border-bright);
+  border-radius: 8px;
+  background: var(--surface-1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: max-content;
+  max-width: 220px;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
+}
+
+.rosco-letter:hover .letter-popover {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Vertical positioning */
+.letter-popover--above {
+  bottom: calc(100% + 10px);
+}
+.letter-popover--below {
+  top: calc(100% + 10px);
+}
+
+/* Horizontal alignment */
+.letter-popover--center {
+  left: 50%;
+  transform: translateX(-50%);
+}
+.letter-popover--left {
+  left: -8px;
+}
+.letter-popover--right {
+  right: -8px;
 }
 
 /* Focus ring */

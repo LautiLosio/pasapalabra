@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Sparkles, X, Loader2, Wand2, AlertCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Question } from '@/game/types';
 
 interface GeneratorModalProps {
@@ -57,17 +58,26 @@ export const GeneratorModal = ({ isOpen, onClose, onGenerate }: GeneratorModalPr
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
-      <div 
-        className="
-          glass-light w-full max-w-md rounded-3xl p-6 
-          shadow-2xl shadow-purple-500/10
-          animate-slide-up
-        "
-      >
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="
+              glass-light w-full max-w-md rounded-3xl p-6 
+              shadow-2xl shadow-purple-500/10
+            "
+          >
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
@@ -127,7 +137,7 @@ export const GeneratorModal = ({ isOpen, onClose, onGenerate }: GeneratorModalPr
                   onClick={() => setDifficulty(level)}
                   disabled={isGenerating}
                   className={`
-                    py-3 rounded-xl text-sm font-bold transition-all btn-press
+                    py-3 rounded-xl text-sm font-bold transition-[background,color,border-color] duration-150 btn-press
                     ${difficulty === level
                       ? level === 'FÁCIL'
                         ? 'bg-green-500/20 text-green-400 border-2 border-green-500/50'
@@ -145,12 +155,20 @@ export const GeneratorModal = ({ isOpen, onClose, onGenerate }: GeneratorModalPr
           </div>
 
           {/* Error message */}
-          {errorMsg && (
-            <div className="bg-red-500/20 border border-red-500/30 text-red-400 p-4 rounded-xl text-sm flex items-start gap-3">
-              <AlertCircle size={18} className="flex-shrink-0 mt-0.5" />
-              <span>{errorMsg}</span>
-            </div>
-          )}
+          <AnimatePresence>
+            {errorMsg && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                className="bg-red-500/20 border border-red-500/30 text-red-400 p-4 rounded-xl text-sm flex items-start gap-3"
+              >
+                <AlertCircle size={18} className="flex-shrink-0 mt-0.5" />
+                <span>{errorMsg}</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Generate button */}
           <button
@@ -162,7 +180,7 @@ export const GeneratorModal = ({ isOpen, onClose, onGenerate }: GeneratorModalPr
               hover:from-purple-500 hover:to-pink-500
               disabled:from-purple-600/50 disabled:to-pink-600/50 disabled:cursor-not-allowed
               shadow-lg shadow-purple-500/30
-              transition-all btn-press
+              transition-[background,box-shadow] duration-150 btn-press
               flex items-center justify-center gap-2
             "
           >
@@ -179,7 +197,9 @@ export const GeneratorModal = ({ isOpen, onClose, onGenerate }: GeneratorModalPr
             )}
           </button>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
