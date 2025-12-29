@@ -2,6 +2,9 @@
 
 Sé el presentador de tu propio juego de Pasapalabra. Controla la partida, gestiona las respuestas y dirige el juego como anfitrión. Incluye generación de preguntas por IA usando OpenRouter.
 
+<img width="1848" height="1668" alt="pasapalabra-host vercel app_" src="https://github.com/user-attachments/assets/d1850b23-ca36-45df-b01f-88f672fa526c" />
+
+
 ## Características
 
 - 🎮 Control de juego para dos equipos
@@ -12,12 +15,14 @@ Sé el presentador de tu propio juego de Pasapalabra. Controla la partida, gesti
 - 📱 Modo público (ocultar controles)
 - ↶ Sistema de deshacer (undo)
 
-## Requisitos
+## Self-hosting
+
+### Requisitos
 
 - Node.js 20+
 - npm, yarn, pnpm o bun
 
-## Configuración
+### Configuración
 
 1. Clona el repositorio:
 
@@ -50,7 +55,7 @@ OPENROUTER_MODEL=openai/gpt-4o-mini
 
 Por defecto se usa `mistralai/devstral-2512:free`.
 
-## Ejecución
+### Ejecución
 
 Inicia el servidor de desarrollo:
 
@@ -60,44 +65,13 @@ npm run dev
 
 Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 
-## Atajos de Teclado
+### Despliegue
 
-- `Espacio`: Pausar/Reanudar reloj
-- `Flecha Derecha` o `A`: Marcar como correcto
-- `Flecha Izquierda` o `F`: Marcar como incorrecto
-- `Flecha Abajo` o `P`: Pasapalabra (saltar)
-- `Z` o `Backspace`: Deshacer última acción
-- `Escape` o `I`: Ocultar/Mostrar controles
-- `M`: Activar/Desactivar sonidos
+El proyecto está listo para desplegar en Vercel:
 
-## Estructura del Proyecto
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/LautiLosio/pasapalabra)
 
-```
-src/
-├── app/                    # Next.js App Router
-│   ├── api/               # API routes
-│   │   └── roscos.generate/ # Generación de roscos con IA
-│   ├── layout.tsx         # Layout principal
-│   └── page.tsx           # Página principal
-├── components/             # Componentes React
-│   ├── HeaderBar.tsx
-│   ├── RoscoCircle.tsx
-│   ├── ControlPanel.tsx
-│   ├── GeneratorModal.tsx
-│   ├── SettingsModal.tsx
-│   ├── InfoModal.tsx
-│   └── EditablePlayerName.tsx
-├── game/                  # Lógica del juego
-│   ├── types.ts          # Tipos TypeScript
-│   ├── defaultQuestions.ts
-│   ├── validation.ts
-│   ├── sound.ts
-│   └── usePasapalabraGame.ts # Hook principal
-└── server/               # Código del servidor
-    └── ai/               # Integración con IA
-        ├── openrouter.ts
-        └── schemas.ts
-```
+Asegúrate de configurar la variable de entorno `OPENROUTER_API_KEY` en tu plataforma de despliegue.
 
 ## Tecnologías
 
@@ -110,13 +84,15 @@ src/
 - **Lucide React** - Iconos
 - **Motion** - Animaciones
 
-## Despliegue
+## Atajos de Teclado
 
-El proyecto está listo para desplegar en Vercel:
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/LautiLosio/pasapalabra)
-
-Asegúrate de configurar la variable de entorno `OPENROUTER_API_KEY` en tu plataforma de despliegue.
+- `Espacio`: Pausar/Reanudar reloj
+- `Flecha Derecha` o `A`: Marcar como correcto
+- `Flecha Izquierda` o `F`: Marcar como incorrecto
+- `Flecha Abajo` o `P`: Pasapalabra (saltar)
+- `Z` o `Backspace`: Deshacer última acción
+- `Escape` o `I`: Ocultar/Mostrar controles
+- `M`: Activar/Desactivar sonidos
 
 ## Licencia
 
