@@ -15,8 +15,8 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: "Pasapalabra - Control de Juego",
-  description: "Sé el presentador de tu propio juego de Pasapalabra. Controla la partida, gestiona las respuestas y dirige el juego como anfitrión",
+  title: "Pasapalabra - Organiza tu competencia en casa",
+  description: "Organiza tu propia competencia de Pasapalabra en casa. Genera roscos con IA, reta a tu familia y amigos, y vive la emoción del juego.",
   manifest: "/manifest.json",
   themeColor: "#9333ea",
   icons: {
@@ -31,6 +31,18 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "Pasapalabra",
+  },
+  openGraph: {
+    title: "Pasapalabra - Organiza tu competencia en casa",
+    description: "Organiza tu propia competencia de Pasapalabra en casa. Genera roscos con IA, reta a tu familia y amigos, y vive la emoción del juego.",
+    type: "website",
+    locale: "es_ES",
+    siteName: "Pasapalabra",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Pasapalabra - Organiza tu competencia en casa",
+    description: "Organiza tu propia competencia de Pasapalabra en casa. Genera roscos con IA, reta a tu familia y amigos, y vive la emoción del juego.",
   },
 };
 
