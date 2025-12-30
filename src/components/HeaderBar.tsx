@@ -99,7 +99,7 @@ export const HeaderBar = ({
             btn-primary
           "
         >
-          <Sparkles size={18} className="text-yellow-200" />
+          <Sparkles size={18} color="currentColor" />
           <span className="hidden md:inline">Generar con IA</span>
           <span className="md:hidden">IA</span>
         </button>
