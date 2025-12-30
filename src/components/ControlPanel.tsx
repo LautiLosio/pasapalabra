@@ -11,12 +11,15 @@ interface ControlPanelProps {
   currentLetterData: Question;
   isCurrentDataValid: boolean;
   isPaused: boolean;
-  prevGameState: unknown;
+  timerStartedThisTurn: boolean;
+  canUndo: boolean;
   onPauseToggle: () => void;
   onUndo: () => void;
   onAction: (action: 'correct' | 'incorrect' | 'pasapalabra') => void;
   onReset: () => void;
   onShowLeaderboard: () => void;
+  onStart: () => void;
+  onGeneratorClick: () => void;
 }
 
 export const ControlPanel = ({
@@ -28,19 +31,21 @@ export const ControlPanel = ({
   currentLetterData,
   isCurrentDataValid,
   isPaused,
-  prevGameState,
+  timerStartedThisTurn,
+  canUndo,
   onPauseToggle,
   onUndo,
   onAction,
   onReset,
   onShowLeaderboard,
+  onStart,
+  onGeneratorClick,
 }: ControlPanelProps) => {
+  // Actions are disabled until timer has been started this turn
+  const actionsDisabled = !timerStartedThisTurn;
   return (
     <section
-      className={`
-        w-full glass z-10 flex-shrink-0 relative 
-        ${isCollapsed ? 'border-t-0' : 'border-t border-border'}
-      `}
+      className="w-full glass z-10 flex-shrink-0 relative"
     >
       {/* Toggle button */}
       <button
@@ -51,7 +56,7 @@ export const ControlPanel = ({
           font-semibold text-xs uppercase tracking-wider 
           flex items-center gap-2 
           text-white/60 hover:text-white
-          transition-colors z-20
+          btn-ghost z-20
         "
       >
         {isCollapsed ? (
@@ -127,8 +132,7 @@ export const ControlPanel = ({
                     className="
                       bg-white/10 hover:bg-white/15
                       text-white px-4 py-2.5 md:px-5 md:py-3 rounded-xl font-semibold text-sm md:text-base
-                      border border-white/20 transition-colors
-                      flex items-center gap-2
+                      btn-ghost flex items-center gap-2
                     "
                   >
                     <List size={18} /> Ver Clasificación
@@ -143,9 +147,8 @@ export const ControlPanel = ({
                     className="
                       bg-gradient-to-r from-blue-500 to-purple-500 
                       hover:from-blue-400 hover:to-purple-400
-                      text-white px-5 py-2.5 md:px-6 md:py-3 rounded-xl font-bold text-sm md:text-base
-                      shadow-lg shadow-blue-500/30 transition-colors
-                      flex items-center gap-2
+                      text-white px-4 py-2.5 md:px-5 md:py-3 rounded-xl font-bold text-sm md:text-base
+                      btn-primary flex items-center gap-2
                     "
                   >
                     <Sparkles size={18} /> Nueva Partida
@@ -162,7 +165,37 @@ export const ControlPanel = ({
                 transition={{ duration: 0.2 }}
                 className="text-center text-white/40 py-6"
               >
-                <p className="text-lg">Presiona <span className="text-green-400 font-semibold">Iniciar</span> para comenzar la partida</p>
+                <p className="text-lg flex items-center justify-center gap-2 flex-wrap">
+                  Presiona{' '}
+                  <button
+                    onClick={onStart}
+                    className="
+                      flex items-center gap-2 
+                      bg-gradient-to-r from-green-500 to-emerald-500 
+                      hover:from-green-400 hover:to-emerald-400
+                      px-4 py-2.5 rounded-xl font-bold text-white text-sm md:text-base
+                      btn-primary
+                    "
+                  >
+                    <Play size={18} fill="currentColor" /> 
+                    <span className="hidden sm:inline">Iniciar</span>
+                  </button>{' '}
+                  para comenzar la partida o{' '}
+                  <button
+                    onClick={onGeneratorClick}
+                    className="
+                      flex items-center gap-2 
+                      bg-gradient-to-r from-purple-600 to-pink-600 
+                      hover:from-purple-500 hover:to-pink-500
+                      px-4 py-2.5 rounded-xl text-sm md:text-base font-bold text-white
+                      btn-primary
+                    "
+                  >
+                    <Sparkles size={18} className="text-yellow-200" />
+                    <span className="inline">Genera preguntas</span>
+                  </button>{' '}
+                  antes de jugar
+                </p>
               </motion.div>
             ) : (
               // Active game state - vertical on mobile, horizontal on desktop
@@ -179,10 +212,10 @@ export const ControlPanel = ({
                 <button
                   onClick={onPauseToggle}
                   className={`
-                    w-full h-11 flex items-center justify-center rounded-lg transition-colors duration-150 btn-press border
+                    w-full h-11 flex items-center justify-center rounded-lg btn-tinted
                     ${isPaused
-                      ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30 border-green-500/30'
-                      : 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border-amber-500/30'
+                      ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
+                      : 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30'
                     }
                   `}
                   title={isPaused ? 'Reanudar (Espacio)' : 'Pausar (Espacio)'}
@@ -191,12 +224,12 @@ export const ControlPanel = ({
                 </button>
                 <button
                   onClick={onUndo}
-                  disabled={!prevGameState}
+                  disabled={!canUndo}
                   className={`
-                    w-full h-11 flex items-center justify-center rounded-lg transition-colors duration-150 btn-press
-                    ${prevGameState
-                      ? 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 border border-yellow-500/30'
-                      : 'bg-white/5 text-white/20 border border-white/10'
+                    w-full h-11 flex items-center justify-center rounded-lg btn-ghost
+                    ${canUndo
+                      ? 'bg-white/12 text-white/70 hover:bg-white/18 hover:text-white'
+                      : 'bg-white/5 text-white/20'
                     }
                   `}
                   title="Deshacer (Z)"
@@ -211,17 +244,21 @@ export const ControlPanel = ({
                   <div className="flex items-center gap-2 flex-wrap mb-1">
                     <span
                       className={`
-                        text-[10px] font-bold uppercase px-2 py-0.5 rounded-md border
+                        text-[10px] font-bold uppercase px-2 py-0.5 rounded-md
                         ${currentLetterData.condition?.includes('Contiene')
-                          ? 'bg-orange-500/20 text-orange-400 border-orange-500/30'
-                          : 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+                          ? 'bg-orange-500/20 text-orange-400'
+                          : 'bg-blue-500/20 text-blue-400'
                         }
                       `}
+                      style={{ boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08), inset 0 -1px 1px rgba(0,0,0,0.1)' }}
                     >
                       {currentLetterData.condition || `Empieza por ${currentLetterData.letter}`}
                     </span>
                     {!isCurrentDataValid && (
-                      <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-red-500/20 text-red-400 border border-red-500/30 flex items-center gap-1 animate-pulse">
+                      <span 
+                        className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-red-500/20 text-red-400 flex items-center gap-1 animate-pulse"
+                        style={{ boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08), inset 0 -1px 1px rgba(0,0,0,0.1)' }}
+                      >
                         <AlertTriangle size={10} /> Error IA
                       </span>
                     )}
@@ -241,25 +278,28 @@ export const ControlPanel = ({
               </div>
 
               {/* Desktop: Right action buttons in grid */}
-              <div className="hidden md:grid grid-cols-2 gap-1.5 flex-shrink-0 w-32">
+              <div className={`hidden md:grid grid-cols-2 gap-1.5 flex-shrink-0 w-32 transition-opacity duration-200 ${actionsDisabled ? 'opacity-40 pointer-events-none' : ''}`}>
                 <button
                   onClick={() => onAction('correct')}
-                  className="col-span-2 h-11 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white rounded-lg shadow-lg shadow-green-500/30 transition-[background,box-shadow] duration-150 btn-press flex items-center justify-center"
-                  title="Acierto (A)"
+                  disabled={actionsDisabled}
+                  className="col-span-2 h-11 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white rounded-lg btn-primary flex items-center justify-center"
+                  title={actionsDisabled ? 'Inicia el temporizador primero' : 'Acierto (A)'}
                 >
                   <Check size={26} strokeWidth={3} />
                 </button>
                 <button
                   onClick={() => onAction('incorrect')}
-                  className="h-11 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-400 hover:to-rose-400 text-white rounded-lg shadow-lg shadow-red-500/30 transition-[background,box-shadow] duration-150 btn-press flex items-center justify-center"
-                  title="Fallo (F)"
+                  disabled={actionsDisabled}
+                  className="h-11 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-400 hover:to-rose-400 text-white rounded-lg btn-primary flex items-center justify-center"
+                  title={actionsDisabled ? 'Inicia el temporizador primero' : 'Fallo (F)'}
                 >
                   <X size={22} strokeWidth={3} />
                 </button>
                 <button
                   onClick={() => onAction('pasapalabra')}
-                  className="h-11 bg-white/10 hover:bg-white/15 text-white/80 hover:text-white rounded-lg border border-white/10 transition-[background,color] duration-150 btn-press flex items-center justify-center"
-                  title="Pasapalabra (P)"
+                  disabled={actionsDisabled}
+                  className="h-11 bg-white/10 hover:bg-white/15 text-white/80 hover:text-white rounded-lg btn-ghost flex items-center justify-center"
+                  title={actionsDisabled ? 'Inicia el temporizador primero' : 'Pasapalabra (P)'}
                 >
                   <SkipForward size={22} strokeWidth={2.5} />
                 </button>
@@ -270,10 +310,10 @@ export const ControlPanel = ({
                 <button
                   onClick={onPauseToggle}
                   className={`
-                    flex-1 h-14 flex items-center justify-center rounded-xl transition-colors duration-150 btn-press border
+                    flex-1 h-14 flex items-center justify-center rounded-xl btn-tinted
                     ${isPaused
-                      ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30 border-green-500/30'
-                      : 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border-amber-500/30'
+                      ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30'
+                      : 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30'
                     }
                   `}
                   title={isPaused ? 'Reanudar' : 'Pausar'}
@@ -282,12 +322,12 @@ export const ControlPanel = ({
                 </button>
                 <button
                   onClick={onUndo}
-                  disabled={!prevGameState}
+                  disabled={!canUndo}
                   className={`
-                    flex-1 h-14 flex items-center justify-center rounded-xl transition-colors duration-150 btn-press
-                    ${prevGameState
-                      ? 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 border border-yellow-500/30'
-                      : 'bg-white/5 text-white/20 border border-white/10'
+                    flex-1 h-14 flex items-center justify-center rounded-xl btn-ghost
+                    ${canUndo
+                      ? 'bg-white/12 text-white/70 hover:bg-white/18 hover:text-white'
+                      : 'bg-white/5 text-white/20'
                     }
                   `}
                   title="Deshacer"
@@ -296,22 +336,25 @@ export const ControlPanel = ({
                 </button>
                 <button
                   onClick={() => onAction('correct')}
-                  className="flex-1 h-14 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white rounded-xl shadow-lg shadow-green-500/30 transition-[background,box-shadow] duration-150 btn-press flex items-center justify-center"
-                  title="Acierto"
+                  disabled={actionsDisabled}
+                  className={`flex-1 h-14 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white rounded-xl btn-primary flex items-center justify-center ${actionsDisabled ? 'opacity-40' : ''}`}
+                  title={actionsDisabled ? 'Inicia el temporizador primero' : 'Acierto'}
                 >
                   <Check size={30} strokeWidth={3} />
                 </button>
                 <button
                   onClick={() => onAction('incorrect')}
-                  className="flex-1 h-14 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-400 hover:to-rose-400 text-white rounded-xl shadow-lg shadow-red-500/30 transition-[background,box-shadow] duration-150 btn-press flex items-center justify-center"
-                  title="Fallo"
+                  disabled={actionsDisabled}
+                  className={`flex-1 h-14 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-400 hover:to-rose-400 text-white rounded-xl btn-primary flex items-center justify-center ${actionsDisabled ? 'opacity-40' : ''}`}
+                  title={actionsDisabled ? 'Inicia el temporizador primero' : 'Fallo'}
                 >
                   <X size={26} strokeWidth={3} />
                 </button>
                 <button
                   onClick={() => onAction('pasapalabra')}
-                  className="flex-1 h-14 bg-white/10 hover:bg-white/15 text-white/80 hover:text-white rounded-xl border border-white/10 transition-[background,color] duration-150 btn-press flex items-center justify-center"
-                  title="Pasapalabra"
+                  disabled={actionsDisabled}
+                  className={`flex-1 h-14 bg-white/10 hover:bg-white/15 text-white/80 hover:text-white rounded-xl btn-ghost flex items-center justify-center ${actionsDisabled ? 'opacity-40' : ''}`}
+                  title={actionsDisabled ? 'Inicia el temporizador primero' : 'Pasapalabra'}
                 >
                   <SkipForward size={26} strokeWidth={2.5} />
                 </button>

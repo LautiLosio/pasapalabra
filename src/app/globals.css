@@ -51,11 +51,8 @@
   --border-bright: rgba(255, 255, 255, 0.15);
   
   /* Rosco sizing - responsive */
-  --rosco-size: min(420px, 85vw, 55vh);
-  --rosco-offset: min(230px, 30vw);
-  /* Spacing based on rosco size - relative to rosco, not viewport */
-  --rosco-spacing-factor: 0.3; /* 30% of rosco size for spacing between roscos */
-  --rosco-spacing: calc(var(--rosco-size) * var(--rosco-spacing-factor));
+  --rosco-size: min(580px, 85vw, 45vh);
+  --rosco-spacing: 8px;
 }
 
 @theme inline {
@@ -168,19 +165,27 @@ body {
 .stagger-4 { animation-delay: 0.08s; }
 .stagger-5 { animation-delay: 0.1s; }
 
-/* Glass morphism - GPU optimized */
+/* Glass morphism with skeuomorphic depth - GPU optimized */
 .glass {
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(12px);
-  border: 1px solid var(--border);
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.1),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.15),
+    0 6px 24px rgba(0, 0, 0, 0.15),
+    0 3px 8px rgba(0, 0, 0, 0.1);
   transform: translateZ(0);
   will-change: transform;
 }
 
 .glass-light {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(20px);
-  border: 1px solid var(--border-bright);
+  box-shadow: 
+    inset 0 1px 2px rgba(255, 255, 255, 0.15),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.2),
+    0 8px 28px rgba(0, 0, 0, 0.2),
+    0 3px 8px rgba(0, 0, 0, 0.12);
   transform: translateZ(0);
   will-change: transform;
 }
@@ -205,15 +210,158 @@ body {
   animation: timer-pulse 0.4s ease-in-out infinite;
 }
 
-/* Smooth button press - GPU accelerated */
-.btn-press {
-  transition: transform 0.1s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.15s ease;
-  transform: translateZ(0);
-  will-change: transform;
+/* ========================================
+   UNIFIED NEUMORPHIC BUTTON SYSTEM
+   Modern neumorphism with subtle shadows, 
+   inset highlights, and translucency.
+   No borders - using box-shadow inset instead.
+   ======================================== */
+
+/* Base button - subtle raised effect */
+.btn-neu {
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.1),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.15),
+    0 2px 6px rgba(0, 0, 0, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.12);
+  transition: transform 0.1s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.12s ease;
 }
 
-.btn-press:active {
+.btn-neu:hover:not(:disabled) {
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.14),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.12),
+    0 4px 10px rgba(0, 0, 0, 0.25),
+    0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.btn-neu:active:not(:disabled) {
+  transform: scale(0.97) translateZ(0);
+  box-shadow: 
+    inset 0 1px 2px rgba(0, 0, 0, 0.15),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.05),
+    0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+/* Surface with subtle depth - for cards/panels */
+.surface-neu {
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.05),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.1),
+    0 6px 20px rgba(0, 0, 0, 0.2),
+    0 3px 6px rgba(0, 0, 0, 0.12);
+}
+
+/* Ghost button - minimal/icon buttons */
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.06),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.08);
+  transition: transform 0.1s cubic-bezier(0.22, 1, 0.36, 1), 
+              box-shadow 0.12s ease,
+              background 0.15s ease;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.1),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.1),
+    0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.btn-ghost:active:not(:disabled) {
   transform: scale(0.95) translateZ(0);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: 
+    inset 0 1px 2px rgba(0, 0, 0, 0.12),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.03);
+}
+
+/* Primary action button - gradient with neumorphism */
+.btn-primary {
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.2),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.2),
+    0 2px 8px rgba(0, 0, 0, 0.25),
+    0 1px 3px rgba(0, 0, 0, 0.15);
+  transition: transform 0.1s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.12s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.25),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.15),
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.18);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.97) translateZ(0);
+  box-shadow: 
+    inset 0 2px 3px rgba(0, 0, 0, 0.2),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+/* Tinted button - colored background with subtle effect */
+.btn-tinted {
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.12),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.12);
+  transition: transform 0.1s cubic-bezier(0.22, 1, 0.36, 1), 
+              box-shadow 0.12s ease,
+              background 0.15s ease;
+}
+
+.btn-tinted:hover:not(:disabled) {
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.18),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.1),
+    0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.btn-tinted:active:not(:disabled) {
+  transform: scale(0.95) translateZ(0);
+  box-shadow: 
+    inset 0 1px 2px rgba(0, 0, 0, 0.15),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.05);
+}
+
+/* Disabled state overlay */
+.btn-neu:disabled,
+.btn-ghost:disabled,
+.btn-primary:disabled,
+.btn-tinted:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Small icon button - close buttons, toggles */
+.btn-icon {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.08),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.1);
+  transition: transform 0.1s cubic-bezier(0.22, 1, 0.36, 1), 
+              box-shadow 0.12s ease,
+              background 0.12s ease,
+              color 0.12s ease;
+}
+
+.btn-icon:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.12),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.08);
+}
+
+.btn-icon:active:not(:disabled) {
+  transform: scale(0.92) translateZ(0);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 
+    inset 0 1px 2px rgba(0, 0, 0, 0.12);
 }
 
 /* Scrollbar styling */
@@ -249,8 +397,8 @@ body {
 
 /* Rosco letter sizing - responsive + GPU optimized */
 .rosco-letter {
-  width: clamp(34px, 10%, 44px);
-  height: clamp(34px, 10%, 44px);
+  width: clamp(38px, 11%, 50px);
+  height: clamp(38px, 11%, 50px);
   will-change: transform;
   contain: layout style;
   user-select: none;
@@ -263,10 +411,12 @@ body {
 .letter-popover {
   position: absolute;
   padding: 8px 12px;
-  border: 1px solid var(--border-bright);
   border-radius: 8px;
   background: var(--surface-1);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.06),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.08),
+    0 4px 20px rgba(0, 0, 0, 0.5);
   display: flex;
   flex-direction: column;
   gap: 4px;

@@ -81,13 +81,13 @@ export const GeneratorModal = ({ isOpen, onClose, onGenerate, currentPlayerCount
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             className="
               glass-light w-full max-w-md rounded-3xl p-6 
-              shadow-2xl shadow-purple-500/10
+              surface-neu
             "
           >
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center btn-neu">
               <Wand2 size={20} className="text-white" />
             </div>
             <div>
@@ -99,7 +99,7 @@ export const GeneratorModal = ({ isOpen, onClose, onGenerate, currentPlayerCount
           </div>
           <button
             onClick={() => !isGenerating && onClose()}
-            className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/15 flex items-center justify-center text-white/60 hover:text-white transition-colors"
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-white/60 hover:text-white btn-icon"
           >
             <X size={18} />
           </button>
@@ -116,11 +116,12 @@ export const GeneratorModal = ({ isOpen, onClose, onGenerate, currentPlayerCount
               placeholder="Ej: Cine, Deportes, Historia de España..."
               className="
                 w-full px-4 py-3.5 rounded-xl 
-                bg-white/5 border border-white/10
+                bg-white/5
                 text-white placeholder:text-white/30
-                focus:border-purple-500/50 focus:bg-white/10
+                focus:bg-white/8 focus:ring-2 focus:ring-purple-500/50
                 outline-none transition-all
               "
+              style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.15), inset 0 -1px 1px rgba(255,255,255,0.05)' }}
               value={theme}
               onChange={e => setTheme(e.target.value)}
               disabled={isGenerating}
@@ -143,14 +144,14 @@ export const GeneratorModal = ({ isOpen, onClose, onGenerate, currentPlayerCount
                   onClick={() => setDifficulty(level)}
                   disabled={isGenerating}
                   className={`
-                    py-3 rounded-xl text-sm font-bold transition-[background,color,border-color] duration-150 btn-press
+                    py-3 rounded-xl text-sm font-bold
                     ${difficulty === level
                       ? level === 'FÁCIL'
-                        ? 'bg-green-500/20 text-green-400 border-2 border-green-500/50'
+                        ? 'bg-green-500/25 text-green-400 btn-neu'
                         : level === 'MEDIO'
-                        ? 'bg-yellow-500/20 text-yellow-400 border-2 border-yellow-500/50'
-                        : 'bg-red-500/20 text-red-400 border-2 border-red-500/50'
-                      : 'bg-white/5 text-white/50 border-2 border-transparent hover:bg-white/10'
+                        ? 'bg-yellow-500/25 text-yellow-400 btn-neu'
+                        : 'bg-red-500/25 text-red-400 btn-neu'
+                      : 'bg-white/5 text-white/50 hover:bg-white/10 btn-ghost'
                     }
                   `}
                 >
@@ -168,7 +169,8 @@ export const GeneratorModal = ({ isOpen, onClose, onGenerate, currentPlayerCount
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                className="bg-red-500/20 border border-red-500/30 text-red-400 p-4 rounded-xl text-sm flex items-start gap-3"
+                className="bg-red-500/20 text-red-400 p-4 rounded-xl text-sm flex items-start gap-3"
+                style={{ boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.06), inset 0 -1px 1px rgba(0,0,0,0.1)' }}
               >
                 <AlertCircle size={18} className="flex-shrink-0 mt-0.5" />
                 <span>{errorMsg}</span>
@@ -184,7 +186,8 @@ export const GeneratorModal = ({ isOpen, onClose, onGenerate, currentPlayerCount
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
-                className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-xl p-4"
+                className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl p-4"
+                style={{ boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08), inset 0 -1px 1px rgba(0,0,0,0.1)' }}
               >
                 <div className="flex items-start gap-3">
                   <div className="flex-shrink-0 mt-0.5">
@@ -237,9 +240,8 @@ export const GeneratorModal = ({ isOpen, onClose, onGenerate, currentPlayerCount
               w-full py-4 rounded-xl font-bold text-white
               bg-gradient-to-r from-purple-600 to-pink-600 
               hover:from-purple-500 hover:to-pink-500
-              disabled:from-purple-600/50 disabled:to-pink-600/50 disabled:cursor-not-allowed
-              shadow-lg shadow-purple-500/30
-              transition-[background,box-shadow] duration-150 btn-press
+              disabled:from-purple-600/50 disabled:to-pink-600/50
+              btn-primary
               flex items-center justify-center gap-2
             "
           >

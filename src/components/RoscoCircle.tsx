@@ -18,7 +18,6 @@ interface RoscoCircleProps {
   onPlayerNameChange: (value: string) => void;
   hasWinner: boolean;
   gameStarted: boolean;
-  totalPlayers: number;
 }
 
 export const RoscoCircle = ({
@@ -32,7 +31,6 @@ export const RoscoCircle = ({
   onPlayerNameChange,
   hasWinner,
   gameStarted,
-  totalPlayers,
 }: RoscoCircleProps) => {
   const isVisuallyActive = isPublicMode || active || hasWinner || !gameStarted;
   const roscoRef = useRef<HTMLDivElement>(null);
@@ -44,27 +42,15 @@ export const RoscoCircle = ({
   
   const timerClass = hasWinner || time <= 0 ? 'timer-normal' : time <= 10 ? 'timer-critical' : time <= 30 ? 'timer-warning' : 'timer-normal';
 
-  // Calculate animation values based on state - always centered in carousel slides
+  // Calculate animation values based on state
   const animationState = useMemo(() => {
     const isPublicView = hasWinner || isPublicMode || !gameStarted;
-    
-    // With 2+ players, always use carousel (flexbox centers it, no positioning needed)
-    if (totalPlayers >= 2) {
-      const scale = isPublicView ? 0.85 : (active ? 1 : 0.5);
-      return {
-        scale,
-        opacity: active || isPublicView ? 1 : 0.4,
-      };
-    }
-
-    // Single player: centered with absolute positioning
+    const scale = isPublicView ? 1 : (active ? 1 : 0.5);
     return {
-      left: '50%',
-      top: '50%',
-      scale: 1,
-      opacity: 1,
+      scale,
+      opacity: active || isPublicView ? 1 : 0.4,
     };
-  }, [hasWinner, isPublicMode, active, gameStarted, totalPlayers]);
+  }, [hasWinner, isPublicMode, active, gameStarted]);
 
   const springTransition = {
     type: 'spring' as const, 
@@ -74,21 +60,10 @@ export const RoscoCircle = ({
   };
 
   // Initial state: use a slight offset to ensure animations trigger
-  // This allows smooth transitions when state changes
-  const initialState = totalPlayers >= 2
-    ? {
-        scale: animationState.scale * 0.98, // Slight difference to trigger animation
-        opacity: animationState.opacity * 0.98,
-      }
-    : {
-        left: animationState.left,
-        top: '30%',
-        scale: animationState.scale * 0.98,
-        opacity: animationState.opacity * 0.98,
-      };
-
-  // Use relative positioning when in carousel (2+ players), absolute for single player
-  const useRelativePosition = totalPlayers >= 2;
+  const initialState = {
+    scale: animationState.scale * 0.98,
+    opacity: animationState.opacity * 0.98,
+  };
   
   return (
     <motion.div
@@ -97,15 +72,13 @@ export const RoscoCircle = ({
       transition={springTransition}
       layout
       style={{ 
-        position: useRelativePosition ? 'relative' : 'absolute',
-        x: useRelativePosition ? 0 : '-50%',
-        y: useRelativePosition ? 0 : '-50%',
+        position: 'relative',
         zIndex: active ? 10 : hasWinner || isPublicMode ? 1 : 0,
         userSelect: 'none',
         WebkitUserSelect: 'none',
         MozUserSelect: 'none',
         msUserSelect: 'none',
-        touchAction: 'pan-x pinch-zoom', // Allow horizontal panning for carousel
+        touchAction: 'pan-x pinch-zoom',
       }}
       className={`
         flex flex-col items-center
@@ -150,10 +123,16 @@ export const RoscoCircle = ({
         />
         
         {/* Inner dark circle */}
-        <div className="absolute inset-0 rounded-full bg-surface-1 border border-border" />
+        <div 
+          className="absolute inset-0 rounded-full bg-surface-1"
+          style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), inset 0 -1px 2px rgba(255,255,255,0.03)' }}
+        />
         
         {/* Decorative inner ring */}
-        <div className="absolute inset-8 rounded-full border border-border-bright opacity-30" />
+        <div 
+          className="absolute inset-22 rounded-full opacity-30"
+          style={{ boxShadow: 'inset 0 0px 2px 0px rgba(255,255,255,1)' }}
+        />
         
         {/* Letters */}
         {data.map((item, index) => {
@@ -165,17 +144,21 @@ export const RoscoCircle = ({
 
           const isCurrent = active && index === activeIndex;
           
-          let bgStyle = 'bg-surface-3 text-white/80 border-border-bright';
+          let bgStyle = 'bg-surface-3 text-white/80';
           let glowStyle = '';
+          let shadowStyle = 'inset 0 1px 1px rgba(255,255,255,0.08), inset 0 -1px 1px rgba(0,0,0,0.12)';
           
           if (item.status === STATUS.CORRECT) {
-            bgStyle = 'bg-gradient-to-br from-green-500 to-emerald-600 text-white border-green-400';
+            bgStyle = 'bg-gradient-to-br from-green-500 to-emerald-600 text-white';
             glowStyle = 'glow-correct';
+            shadowStyle = 'inset 0 1px 1px rgba(255,255,255,0.2), inset 0 -1px 2px rgba(0,0,0,0.15)';
           } else if (item.status === STATUS.INCORRECT) {
-            bgStyle = 'bg-gradient-to-br from-red-500 to-rose-600 text-white border-red-400';
+            bgStyle = 'bg-gradient-to-br from-red-500 to-rose-600 text-white';
             glowStyle = 'glow-incorrect';
+            shadowStyle = 'inset 0 1px 1px rgba(255,255,255,0.2), inset 0 -1px 2px rgba(0,0,0,0.15)';
           } else if (item.status === STATUS.SKIPPED) {
-            bgStyle = 'bg-surface-2 text-white/40 border-border';
+            bgStyle = 'bg-surface-2 text-white/40';
+            shadowStyle = 'inset 0 1px 1px rgba(255,255,255,0.04), inset 0 -1px 1px rgba(0,0,0,0.1)';
           }
 
           // Position tooltip: above for bottom half letters, below for top half
@@ -191,25 +174,26 @@ export const RoscoCircle = ({
               transition={{ type: 'spring', stiffness: 300, damping: 18, mass: 0.6 }}
               className={`
                 rosco-letter absolute rounded-full flex items-center justify-center 
-                text-sm font-bold border-2 cursor-pointer hover:z-[100]
+                text-xl font-bold cursor-pointer hover:z-[100] border border-white/10
                 ${bgStyle} ${glowStyle}
-                ${isCurrent ? 'z-20 !bg-gradient-to-br !from-yellow-400 !to-amber-500 !text-slate-900 !border-yellow-300 letter-active-glow' : 'z-10'}
+                ${isCurrent ? 'z-20 !bg-gradient-to-br !from-yellow-400 !to-amber-500 !text-slate-900 letter-active-glow' : 'z-10'}
               `}
               style={{
                 left: `${xPercent}%`,
                 top: `${yPercent}%`,
                 x: '-50%',
                 y: '-50%',
+                boxShadow: isCurrent ? 'inset 0 1px 2px rgba(255,255,255,0.3), inset 0 -1px 2px rgba(0,0,0,0.2)' : shadowStyle,
               }}
             >
               {item.letter}
               {/* Tooltip - CSS hover */}
               <div className={`letter-popover letter-popover--${showBelow ? 'below' : 'above'} letter-popover--${hAlign}`}>
-                <span className="text-white/50 text-[10px] uppercase tracking-wider">
+                <span className="text-white/50 text-sm uppercase tracking-wider">
                   {item.condition === 'starts' ? `Empieza ${item.letter}` : `Contiene ${item.letter}`}
                 </span>
-                <span className="font-bold text-white text-sm">{item.answer}</span>
-                <span className="text-white/70 text-xs leading-relaxed">{item.description}</span>
+                <span className="font-bold text-white text-base">{item.answer}</span>
+                <span className="text-white/70 text-sm leading-relaxed">{item.description}</span>
               </div>
             </motion.div>
           );

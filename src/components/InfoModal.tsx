@@ -31,12 +31,12 @@ export const InfoModal = ({ isOpen, onClose, title, subtitle, icon, children }: 
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             onClick={(e) => e.stopPropagation()}
-            className="glass-light w-full max-w-md rounded-3xl p-6 shadow-2xl shadow-blue-500/10 max-h-[85vh] overflow-y-auto"
+            className="glass-light w-full max-w-md rounded-3xl p-6 surface-neu max-h-[85vh] overflow-y-auto"
           >
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center btn-neu">
                   {icon}
                 </div>
                 <div>
@@ -50,7 +50,7 @@ export const InfoModal = ({ isOpen, onClose, title, subtitle, icon, children }: 
               </div>
               <button
                 onClick={onClose}
-                className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/15 flex items-center justify-center text-white/60 hover:text-white transition-colors"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-white/60 hover:text-white btn-icon"
               >
                 <X size={18} />
               </button>
@@ -79,10 +79,11 @@ export const ShortcutRow = ({ keys, description }: ShortcutRowProps) => (
           <div key={i} className="flex items-center gap-1.5">
             <kbd
               className={`
-                px-2.5 py-1 rounded-lg bg-white/10 text-white/90 text-xs border border-white/10 shadow-sm 
+                px-2.5 py-1 rounded-lg bg-white/10 text-white/90 text-xs
                 inline-flex items-center justify-center min-w-[2rem] h-7
                 ${isIcon ? '' : 'font-mono font-bold'}
               `}
+              style={{ boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08), inset 0 -1px 1px rgba(0,0,0,0.1)' }}
             >
               {key}
             </kbd>

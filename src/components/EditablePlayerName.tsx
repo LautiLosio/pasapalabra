@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { getPlayerColor } from '@/game/types';
 
 interface EditablePlayerNameProps {
   value: string;
@@ -11,16 +10,16 @@ interface EditablePlayerNameProps {
 }
 
 const PLAYER_GRADIENTS = [
-  'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/30',
-  'bg-gradient-to-r from-orange-600 to-orange-500 text-white shadow-lg shadow-orange-500/30',
-  'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-lg shadow-purple-500/30',
-  'bg-gradient-to-r from-green-600 to-green-500 text-white shadow-lg shadow-green-500/30',
-  'bg-gradient-to-r from-red-600 to-red-500 text-white shadow-lg shadow-red-500/30',
-  'bg-gradient-to-r from-yellow-600 to-yellow-500 text-white shadow-lg shadow-yellow-500/30',
-  'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-lg shadow-indigo-500/30',
-  'bg-gradient-to-r from-teal-600 to-teal-500 text-white shadow-lg shadow-teal-500/30',
-  'bg-gradient-to-r from-pink-600 to-pink-500 text-white shadow-lg shadow-pink-500/30',
-  'bg-gradient-to-r from-cyan-600 to-cyan-500 text-white shadow-lg shadow-cyan-500/30',
+  'bg-gradient-to-r from-blue-600 to-blue-500 text-white btn-primary',
+  'bg-gradient-to-r from-orange-600 to-orange-500 text-white btn-primary',
+  'bg-gradient-to-r from-purple-600 to-purple-500 text-white btn-primary',
+  'bg-gradient-to-r from-green-600 to-green-500 text-white btn-primary',
+  'bg-gradient-to-r from-red-600 to-red-500 text-white btn-primary',
+  'bg-gradient-to-r from-yellow-600 to-yellow-500 text-white btn-primary',
+  'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white btn-primary',
+  'bg-gradient-to-r from-teal-600 to-teal-500 text-white btn-primary',
+  'bg-gradient-to-r from-pink-600 to-pink-500 text-white btn-primary',
+  'bg-gradient-to-r from-cyan-600 to-cyan-500 text-white btn-primary',
 ] as const;
 
 export const EditablePlayerName = ({
@@ -82,7 +81,7 @@ export const EditablePlayerName = ({
         className={`
           px-3 py-1 md:px-5 md:py-1.5 rounded-full font-[family-name:var(--font-fredoka)] text-sm md:text-lg font-semibold tracking-wide
           ${playerGradient}
-          outline-none border-2 border-white/50
+          outline-none ring-2 ring-white/40
           ${className}
         `}
         maxLength={30}

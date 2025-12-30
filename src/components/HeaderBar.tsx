@@ -28,7 +28,7 @@ export const HeaderBar = ({
 
   return (
     <>
-    <header className="glass-light px-4 md:px-6 py-3 flex justify-between items-center z-20 border-b border-border">
+    <header className="glass-light px-4 md:px-6 py-3 flex justify-between items-center z-20">
       {/* Logo */}
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-orange-500 flex items-center justify-center">
@@ -49,7 +49,7 @@ export const HeaderBar = ({
         {/* How to Use button */}
         <button
           onClick={() => setShowHelpModal(true)}
-          className="p-2.5 rounded-xl bg-white/10 text-white/70 hover:bg-white/15 hover:text-white transition-[background,color] duration-150 btn-press"
+          className="p-2.5 rounded-xl text-white/70 hover:text-white btn-ghost"
           title="Cómo Jugar"
         >
           <HelpCircle size={18} />
@@ -58,7 +58,7 @@ export const HeaderBar = ({
         {/* Keyboard Shortcuts button */}
         <button
           onClick={() => setShowShortcutsModal(true)}
-          className="p-2.5 rounded-xl bg-white/10 text-white/70 hover:bg-white/15 hover:text-white transition-[background,color] duration-150 btn-press hidden sm:flex"
+          className="p-2.5 rounded-xl text-white/70 hover:text-white btn-ghost hidden sm:flex"
           title="Atajos de Teclado"
         >
           <Keyboard size={18} />
@@ -67,7 +67,7 @@ export const HeaderBar = ({
         {/* Settings button */}
         <button
           onClick={onSettingsClick}
-          className="p-2.5 rounded-xl bg-white/10 text-white/70 hover:bg-white/15 hover:text-white transition-[background,color] duration-150 btn-press"
+          className="p-2.5 rounded-xl text-white/70 hover:text-white btn-ghost"
           title="Configuración"
         >
           <Settings size={18} />
@@ -77,10 +77,10 @@ export const HeaderBar = ({
         <button
           onClick={onSoundToggle}
           className={`
-            p-2.5 rounded-xl transition-[background,color] duration-150 btn-press
+            p-2.5 rounded-xl
             ${soundEnabled
-              ? 'bg-white/10 text-white hover:bg-white/15'
-              : 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+              ? 'text-white hover:text-white btn-ghost'
+              : 'bg-red-500/20 text-red-400 hover:bg-red-500/30 btn-tinted'
             }
           `}
           title={soundEnabled ? 'Silenciar' : 'Activar Sonido'}
@@ -95,12 +95,11 @@ export const HeaderBar = ({
             flex items-center gap-2 
             bg-gradient-to-r from-purple-600 to-pink-600 
             hover:from-purple-500 hover:to-pink-500
-            px-4 py-2.5 rounded-xl text-xs md:text-sm font-bold text-white
-            transition-[background,box-shadow] duration-150 shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40
-            btn-press
+            px-4 py-2.5 rounded-xl text-sm md:text-base font-bold text-white
+            btn-primary
           "
         >
-          <Sparkles size={16} className="text-yellow-200" />
+          <Sparkles size={18} className="text-yellow-200" />
           <span className="hidden md:inline">Generar con IA</span>
           <span className="md:hidden">IA</span>
         </button>
@@ -113,9 +112,8 @@ export const HeaderBar = ({
               flex items-center gap-2 
               bg-gradient-to-r from-green-500 to-emerald-500 
               hover:from-green-400 hover:to-emerald-400
-              px-5 py-2.5 rounded-xl font-bold text-white text-sm md:text-base
-              transition-[background,box-shadow] duration-150 shadow-lg shadow-green-500/30 hover:shadow-green-500/50
-              btn-press
+              px-4 py-2.5 rounded-xl font-bold text-white text-sm md:text-base
+              btn-primary
             "
           >
             <Play size={18} fill="currentColor" /> 
@@ -127,11 +125,11 @@ export const HeaderBar = ({
             className="
               flex items-center gap-2 
               bg-white/10 hover:bg-white/15
-              px-4 py-2.5 rounded-xl text-sm text-white/80 hover:text-white
-              transition-[background,color] duration-150 btn-press
+              px-4 py-2.5 rounded-xl text-sm md:text-base text-white/80 hover:text-white
+              btn-ghost
             "
           >
-            <RotateCcw size={16} /> 
+            <RotateCcw size={18} /> 
             <span className="hidden sm:inline">Reiniciar</span>
           </button>
         )}
@@ -147,7 +145,7 @@ export const HeaderBar = ({
       icon={<HelpCircle size={20} className="text-white" />}
     >
       <div className="space-y-4 text-sm text-white/70">
-        <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+        <div className="bg-white/5 rounded-xl p-4" style={{ boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.04), inset 0 -1px 1px rgba(0,0,0,0.08)' }}>
           <h3 className="font-bold text-white mb-2 flex items-center gap-2">
             <Target size={18} className="text-blue-400" />
             Objetivo
@@ -155,7 +153,7 @@ export const HeaderBar = ({
           <p>Acertar el mayor número de palabras del rosco. Cada letra corresponde a una palabra que comienza o contiene esa letra.</p>
         </div>
 
-        <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+        <div className="bg-white/5 rounded-xl p-4" style={{ boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.04), inset 0 -1px 1px rgba(0,0,0,0.08)' }}>
           <h3 className="font-bold text-white mb-2 flex items-center gap-2">
             <Users size={18} className="text-purple-400" />
             Jugadores
@@ -163,7 +161,7 @@ export const HeaderBar = ({
           <p>Dos jugadores compiten con roscos independientes. Los turnos se alternan cuando un jugador falla o dice &quot;pasapalabra&quot;.</p>
         </div>
 
-        <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+        <div className="bg-white/5 rounded-xl p-4" style={{ boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.04), inset 0 -1px 1px rgba(0,0,0,0.08)' }}>
           <h3 className="font-bold text-white mb-2 flex items-center gap-2">
             <Clock size={18} className="text-orange-400" />
             Tiempo
@@ -171,7 +169,7 @@ export const HeaderBar = ({
           <p>Cada jugador tiene su propio cronómetro. El tiempo solo corre durante tu turno y se pausa automáticamente al cambiar.</p>
         </div>
 
-        <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+        <div className="bg-white/5 rounded-xl p-4" style={{ boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.04), inset 0 -1px 1px rgba(0,0,0,0.08)' }}>
           <h3 className="font-bold text-white mb-2 flex items-center gap-2">
             <Trophy size={18} className="text-yellow-400" />
             Victoria
@@ -183,7 +181,7 @@ export const HeaderBar = ({
           </ul>
         </div>
 
-        <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+        <div className="bg-white/5 rounded-xl p-4" style={{ boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.04), inset 0 -1px 1px rgba(0,0,0,0.08)' }}>
           <h3 className="font-bold text-white mb-2 flex items-center gap-2">
             <Gamepad2 size={18} className="text-green-400" />
             Controles
@@ -206,7 +204,7 @@ export const HeaderBar = ({
       icon={<Keyboard size={20} className="text-white" />}
     >
       <div className="space-y-3">
-        <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+        <div className="bg-white/5 rounded-xl p-4" style={{ boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.04), inset 0 -1px 1px rgba(0,0,0,0.08)' }}>
           <h3 className="font-bold text-white text-sm mb-3 uppercase tracking-wide">Respuestas</h3>
           <div className="space-y-0">
             <ShortcutRow keys={[<ArrowRight key="arrow-right" size={12} />, 'A']} description="Acierto (correcto)" />
@@ -215,7 +213,7 @@ export const HeaderBar = ({
           </div>
         </div>
 
-        <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+        <div className="bg-white/5 rounded-xl p-4" style={{ boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.04), inset 0 -1px 1px rgba(0,0,0,0.08)' }}>
           <h3 className="font-bold text-white text-sm mb-3 uppercase tracking-wide">Control del juego</h3>
           <div className="space-y-0">
             <ShortcutRow keys={['Espacio']} description="Pausar / Reanudar" />
