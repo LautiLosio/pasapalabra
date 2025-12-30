@@ -38,11 +38,20 @@ export const metadata: Metadata = {
     type: "website",
     locale: "es_ES",
     siteName: "Pasapalabra",
+    images: [
+      {
+        url: "/pasapalabra-logo-1024.png",
+        width: 1024,
+        height: 1024,
+        alt: "Pasapalabra Logo",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Pasapalabra - Organiza tu competencia en casa",
     description: "Organiza tu propia competencia de Pasapalabra en casa. Genera roscos con IA, reta a tu familia y amigos, y vive la emoción del juego.",
+    images: ["/pasapalabra-logo-1024.png"],
   },
 };
 
