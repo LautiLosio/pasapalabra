@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Sparkles, X, Loader2, Wand2, AlertCircle, Users, Clock } from 'lucide-react';
+import { Sparkles, X, Loader2, Wand2, AlertCircle, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Question } from '@/game/types';
 
@@ -186,48 +186,42 @@ export const GeneratorModal = ({ isOpen, onClose, onGenerate, currentPlayerCount
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
-                className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl p-4"
-                style={{ boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.08), inset 0 -1px 1px rgba(0,0,0,0.1)' }}
+                className="bg-white/5 rounded-xl p-5 text-center"
+                style={{ boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.04), inset 0 -1px 1px rgba(0,0,0,0.08)' }}
               >
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 mt-0.5">
-                    <Clock className="text-purple-400 animate-pulse" size={18} />
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <p className="text-sm text-white/90 font-semibold">
-                      Generando {currentPlayerCount} {currentPlayerCount === 1 ? 'rosco' : 'roscos'}...
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <div className="flex gap-1">
-                        {Array.from({ length: currentPlayerCount }, (_, i) => (
-                          <motion.div
-                            key={i}
-                            initial={{ scale: 0.5, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{
-                              delay: i * 0.15,
-                              duration: 0.3,
-                              repeat: Infinity,
-                              repeatType: 'reverse',
-                            }}
-                            className="w-2 h-2 rounded-full bg-purple-400"
-                          />
-                        ))}
-                      </div>
-                      <p className="text-xs text-white/60 flex items-center gap-1">
-                        <Users size={12} />
-                        <span>
-                          {currentPlayerCount > 1 && (
-                            <>Más jugadores = más tiempo de espera</>
-                          )}
-                          {currentPlayerCount === 1 && (
-                            <>Generando tu rosco personalizado...</>
-                          )}
-                        </span>
-                      </p>
-                    </div>
-                  </div>
+                {/* Status text */}
+                <p className="text-sm text-white/90 font-semibold mb-1">
+                  Generando {currentPlayerCount} {currentPlayerCount === 1 ? 'rosco' : 'roscos'}
+                </p>
+                {/* Animated dots representing each rosco */}
+                
+                <div className="flex justify-center gap-2.5 my-4">
+                  {Array.from({ length: currentPlayerCount }, (_, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ 
+                        scale: [0.8, 1, 0.8],
+                        opacity: [0.5, 1, 0.5],
+                      }}
+                      transition={{
+                        delay: i * 0.2,
+                        duration: 1.2,
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                      }}
+                      className="w-3 h-3 rounded-full bg-gradient-to-br from-purple-400 to-pink-400"
+                      style={{ boxShadow: '0 0 12px rgba(168, 85, 247, 0.5)' }}
+                    />
+                  ))}
                 </div>
+                <p className="text-xs text-white/40 flex items-center justify-center gap-1.5">
+                  <Clock size={12} className="text-purple-400/70" />
+                  {currentPlayerCount > 1 
+                    ? 'Más jugadores = más tiempo de espera'
+                    : 'Creando tu rosco personalizado...'
+                  }
+                </p>
               </motion.div>
             )}
           </AnimatePresence>

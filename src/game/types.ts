@@ -38,7 +38,7 @@ export interface LeaderboardEntry extends PlayerStats {
   isTie: boolean;
 }
 
-export const INITIAL_TIME = 180000; // 3 minutes in milliseconds
+export const INITIAL_TIME = 120000; // 2 minutes in milliseconds
 
 export const ALPHABET_ES = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ".split("");
 

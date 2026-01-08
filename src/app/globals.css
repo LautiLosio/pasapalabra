@@ -52,7 +52,7 @@
   
   /* Rosco sizing - responsive */
   --rosco-size: min(580px, 85vw, 45vh);
-  --rosco-spacing: 8px;
+  --rosco-spacing: 24px;
 }
 
 @theme inline {
@@ -102,18 +102,25 @@ body {
   box-shadow: 0 0 15px var(--incorrect-glow), 0 0 30px var(--incorrect-glow);
 }
 
-/* Letter pulsing glow animation for current letter */
+/* Letter pulsing glow animation for current letter - uses pseudo-element to avoid layout shift */
 @keyframes letter-glow {
-  0%, 100% {
-    box-shadow: 0 0 15px 4px rgba(250, 204, 21, 0.5);
-  }
-  50% {
-    box-shadow: 0 0 25px 10px rgba(250, 204, 21, 0.3);
-  }
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 0.4; }
 }
 
 .letter-active-glow {
+  position: relative;
+}
+
+.letter-active-glow::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  background: radial-gradient(circle, rgba(250, 204, 21, 0.6) 0%, rgba(250, 204, 21, 0) 70%);
   animation: letter-glow 1.2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
 }
 
 /* Rosco ring glow animation */

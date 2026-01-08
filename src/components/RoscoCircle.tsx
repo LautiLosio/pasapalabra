@@ -174,7 +174,7 @@ export const RoscoCircle = ({
               transition={{ type: 'spring', stiffness: 300, damping: 18, mass: 0.6 }}
               className={`
                 rosco-letter absolute rounded-full flex items-center justify-center 
-                text-xl font-bold cursor-pointer hover:z-[100] border border-white/10
+                text-xl font-bold hover:z-[100] border border-white/10
                 ${bgStyle} ${glowStyle}
                 ${isCurrent ? 'z-20 !bg-gradient-to-br !from-yellow-400 !to-amber-500 !text-slate-900 letter-active-glow' : 'z-10'}
               `}

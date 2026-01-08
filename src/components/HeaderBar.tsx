@@ -79,11 +79,11 @@ export const HeaderBar = ({
           className={`
             p-2.5 rounded-xl
             ${soundEnabled
-              ? 'text-white hover:text-white btn-ghost'
-              : 'bg-red-500/20 text-red-400 hover:bg-red-500/30 btn-tinted'
+              ? 'text-white/70 hover:text-white btn-ghost'
+              : 'bg-red-500/20 text-red-400/70 hover:bg-red-500/30 btn-tinted hover:text-red-400'
             }
           `}
-          title={soundEnabled ? 'Silenciar' : 'Activar Sonido'}
+          title={soundEnabled ? 'Silenciar (M)' : 'Activar Sonido (M)'}
         >
           {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
         </button>

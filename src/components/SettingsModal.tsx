@@ -15,10 +15,11 @@ interface SettingsModalProps {
   gameStarted: boolean;
 }
 
-type PresetKey = '1' | '3' | '5' | 'otro';
+type PresetKey = '1' | '2' | '3' | '5' | 'otro';
 
 const presetTimes = [
   { label: '1 min', value: 60000 },
+  { label: '2 min', value: 120000 },
   { label: '3 min', value: 180000 },
   { label: '5 min', value: 300000 },
 ] as const;
@@ -28,7 +29,11 @@ const getSelectedPreset = (time: number) => presetTimes.find(preset => preset.va
 const getPresetKey = (time: number): PresetKey => {
   const preset = getSelectedPreset(time);
   if (!preset) return 'otro';
-  return preset.label === '1 min' ? '1' : preset.label === '3 min' ? '3' : '5';
+  if (preset.label === '1 min') return '1';
+  if (preset.label === '2 min') return '2';
+  if (preset.label === '3 min') return '3';
+  if (preset.label === '5 min') return '5';
+  return 'otro';
 };
 
 export const SettingsModal = ({
@@ -108,7 +113,7 @@ export const SettingsModal = ({
               <label className="text-xs text-white/50 mb-2 block">Tiempo:</label>
               <div className="flex flex-wrap gap-2">
                 {presetTimes.map((preset) => {
-                  const presetKey = preset.label === '1 min' ? '1' : preset.label === '3 min' ? '3' : '5';
+                  const presetKey = preset.label === '1 min' ? '1' : preset.label === '2 min' ? '2' : preset.label === '3 min' ? '3' : '5';
                   return (
                     <button
                       key={preset.value}

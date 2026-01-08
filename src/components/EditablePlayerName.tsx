@@ -84,7 +84,7 @@ export const EditablePlayerName = ({
           outline-none ring-2 ring-white/40
           ${className}
         `}
-        maxLength={30}
+        maxLength={20}
       />
     );
   }
@@ -95,7 +95,7 @@ export const EditablePlayerName = ({
       className={`
         px-3 py-1 md:px-5 md:py-1.5 rounded-full font-[family-name:var(--font-fredoka)] text-sm md:text-lg font-semibold tracking-wide
         ${playerGradient}
-        cursor-pointer transition-all hover:scale-105 active:scale-95
+        cursor-pointer
         ${className}
       `}
       title="Clic para editar"

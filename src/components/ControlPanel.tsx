@@ -58,14 +58,15 @@ export const ControlPanel = ({
           text-white/60 hover:text-white
           btn-ghost z-20
         "
+        title={isCollapsed ? 'Mostrar Respuestas (I)' : 'Ocultar Respuestas (I)'}
       >
         {isCollapsed ? (
           <>
-            <ChevronUp size={16} /> Mostrar Controles
+            <ChevronUp size={16} /> Mostrar Respuestas
           </>
         ) : (
           <>
-            <ChevronDown size={16} /> Ocultar
+            <ChevronDown size={16} /> Ocultar Respuestas
           </>
         )}
       </button>
@@ -264,7 +265,7 @@ export const ControlPanel = ({
                     )}
                   </div>
                   <div className="flex-1 flex items-center justify-center min-h-[2.5em] md:min-h-[3em]">
-                    <p className="text-sm md:text-lg font-medium text-white leading-relaxed line-clamp-2 w-full">
+                    <p className="text-sm md:text-lg font-medium text-white leading-relaxed break-words text-wrap w-full">
                       {currentLetterData.description}
                     </p>
                   </div>
@@ -283,7 +284,7 @@ export const ControlPanel = ({
                   onClick={() => onAction('correct')}
                   disabled={actionsDisabled}
                   className="col-span-2 h-11 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white rounded-lg btn-primary flex items-center justify-center"
-                  title={actionsDisabled ? 'Inicia el temporizador primero' : 'Acierto (A)'}
+                  title={actionsDisabled ? 'Inicia el temporizador primero' : 'Acierto (→)'}
                 >
                   <Check size={26} strokeWidth={3} />
                 </button>
@@ -291,7 +292,7 @@ export const ControlPanel = ({
                   onClick={() => onAction('incorrect')}
                   disabled={actionsDisabled}
                   className="h-11 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-400 hover:to-rose-400 text-white rounded-lg btn-primary flex items-center justify-center"
-                  title={actionsDisabled ? 'Inicia el temporizador primero' : 'Fallo (F)'}
+                  title={actionsDisabled ? 'Inicia el temporizador primero' : 'Fallo (←)'}
                 >
                   <X size={22} strokeWidth={3} />
                 </button>
@@ -299,7 +300,7 @@ export const ControlPanel = ({
                   onClick={() => onAction('pasapalabra')}
                   disabled={actionsDisabled}
                   className="h-11 bg-white/10 hover:bg-white/15 text-white/80 hover:text-white rounded-lg btn-ghost flex items-center justify-center"
-                  title={actionsDisabled ? 'Inicia el temporizador primero' : 'Pasapalabra (P)'}
+                  title={actionsDisabled ? 'Inicia el temporizador primero' : 'Pasapalabra (↓)'}
                 >
                   <SkipForward size={22} strokeWidth={2.5} />
                 </button>

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fredoka, Nunito } from "next/font/google";
 import "./globals.css";
 
@@ -14,11 +14,15 @@ const nunito = Nunito({
   weight: ["400", "500", "600", "700", "800"],
 });
 
+export const viewport: Viewport = {
+  themeColor: "#9333ea",
+};
+
 export const metadata: Metadata = {
+  metadataBase: new URL("https://pasapalabra.lauti.dev"),
   title: "Pasapalabra - Organiza tu competencia en casa",
   description: "Organiza tu propia competencia de Pasapalabra en casa. Genera roscos con IA, reta a tu familia y amigos, y vive la emoción del juego.",
   manifest: "/manifest.json",
-  themeColor: "#9333ea",
   icons: {
     icon: [
       { url: "/pasapalabra-logo-1024.png", sizes: "any" },
