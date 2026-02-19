@@ -33,12 +33,11 @@ export const GeneratorModal = ({ isOpen, onClose, onGenerate, currentPlayerCount
         }),
       });
 
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({ error: 'Error desconocido' }));
-        throw new Error(error.error || `HTTP ${response.status}`);
-      }
+      const result = await response.json().catch(() => ({ error: 'Error desconocido' }));
 
-      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || `HTTP ${response.status}`);
+      }
 
       if (result.roscos && Array.isArray(result.roscos)) {
         if (result.roscos.length !== currentPlayerCount) {
@@ -57,7 +56,6 @@ export const GeneratorModal = ({ isOpen, onClose, onGenerate, currentPlayerCount
       }
     } catch (e) {
       const error = e instanceof Error ? e.message : 'Error al generar';
-      console.error(e);
       setErrorMsg(`Error: ${error}`);
     } finally {
       setIsGenerating(false);

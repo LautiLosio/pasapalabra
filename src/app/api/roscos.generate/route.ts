@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateObject } from "ai";
+import { generateText, generateObject, APICallError } from "ai";
 import { openrouter, getModel } from "@/server/ai/openrouter";
 import { GenerateRoscosResponseSchema } from "@/server/ai/schemas";
 import { validateItem } from "@/game/validation";
 import { Question } from "@/game/types";
+
+/** Models that only support json_object (not json_schema) - use generateText + json() output */
+const JSON_OBJECT_ONLY_MODELS = ["stepfun/step-3.5-flash", "stepfun/step-3"];
 
 export async function POST(request: NextRequest) {
   try {
@@ -80,23 +83,59 @@ ${selectedGuide}
   ]
 }`;
 
-    const result = await generateObject({
-      model: openrouter(getModel()),
-      schema: GenerateRoscosResponseSchema,
-      prompt,
-    });
+    const modelId = getModel();
+    const useJsonObjectOnly = JSON_OBJECT_ONLY_MODELS.some((m) =>
+      modelId.toLowerCase().startsWith(m.toLowerCase())
+    );
 
-    if (!result.object.roscos || !Array.isArray(result.object.roscos)) {
+    let object: { roscos: Question[][] };
+
+    if (useJsonObjectOnly) {
+      // StepFun etc. don't support response_format - use plain text and parse JSON manually.
+      const { text } = await generateText({
+        model: openrouter(modelId),
+        prompt,
+        maxOutputTokens: 16384, // 27 letters × N roscos × ~80 chars each ≈ 4k+ tokens
+      });
+      const raw = text.replace(/^```(?:json)?\s*|\s*```$/g, "").trim();
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        return NextResponse.json(
+          { error: "Formato de respuesta inválido" },
+          { status: 500 }
+        );
+      }
+      const parsedResult = GenerateRoscosResponseSchema.safeParse(parsed);
+      if (!parsedResult.success) {
+        return NextResponse.json(
+          { error: "Formato de respuesta inválido" },
+          { status: 500 }
+        );
+      }
+      object = parsedResult.data;
+    } else {
+      const result = await generateObject({
+        model: openrouter(modelId),
+        schema: GenerateRoscosResponseSchema,
+        prompt,
+        maxOutputTokens: 16384,
+      });
+      object = result.object;
+    }
+
+    if (!object.roscos || !Array.isArray(object.roscos)) {
       return NextResponse.json(
         { error: "Formato de respuesta inválido" },
         { status: 500 }
       );
     }
 
-    if (result.object.roscos.length !== playerCountValue) {
+    if (object.roscos.length !== playerCountValue) {
       return NextResponse.json(
         {
-          error: `Se esperaban ${playerCountValue} roscos, se recibieron ${result.object.roscos.length}`,
+          error: `Se esperaban ${playerCountValue} roscos, se recibieron ${object.roscos.length}`,
         },
         { status: 500 }
       );
@@ -116,17 +155,39 @@ ${selectedGuide}
       });
     };
 
-    const cleanRoscos = result.object.roscos.map((rosco: Question[]) =>
+    const cleanRoscos = object.roscos.map((rosco: Question[]) =>
       processRosco(rosco)
     );
 
-    return NextResponse.json({
-      roscos: cleanRoscos,
-    });
+    return NextResponse.json({ roscos: cleanRoscos });
   } catch (error) {
-    console.error("Error generating roscos:", error);
-    const errorMessage =
-      error instanceof Error ? error.message : "Error desconocido";
+    let errorMessage = error instanceof Error ? error.message : "Error desconocido";
+
+    if (APICallError.isInstance(error)) {
+      // OpenRouter/API errors: use responseBody (provider's data is schema-stripped, lacks metadata)
+      try {
+        const parsed = error.responseBody
+          ? (JSON.parse(error.responseBody) as {
+              error?: { message?: string; metadata?: { raw?: string } };
+            })
+          : null;
+        let msg = parsed?.error?.message;
+        const rawMeta = parsed?.error?.metadata?.raw;
+        if (rawMeta && msg === "Provider returned error") {
+          try {
+            const inner = JSON.parse(rawMeta) as { error?: { message?: string } };
+            msg = inner?.error?.message ?? rawMeta;
+          } catch {
+            msg = rawMeta;
+          }
+        }
+        if (msg) errorMessage = msg;
+      } catch {
+        const data = error.data as { error?: { message?: string } } | undefined;
+        if (data?.error?.message) errorMessage = data.error.message;
+      }
+    }
+
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
