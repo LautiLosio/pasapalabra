@@ -10,9 +10,20 @@ interface GeneratorModalProps {
   onClose: () => void;
   onGenerate: (data: Question[][]) => void;
   currentPlayerCount: number;
+  onGenerateStart?: () => void;
+  onGenerateSuccess?: () => void;
+  onGenerateError?: () => void;
 }
 
-export const GeneratorModal = ({ isOpen, onClose, onGenerate, currentPlayerCount }: GeneratorModalProps) => {
+export const GeneratorModal = ({
+  isOpen,
+  onClose,
+  onGenerate,
+  currentPlayerCount,
+  onGenerateStart,
+  onGenerateSuccess,
+  onGenerateError,
+}: GeneratorModalProps) => {
   const [theme, setTheme] = useState('');
   const [difficulty, setDifficulty] = useState('MEDIO');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -21,6 +32,7 @@ export const GeneratorModal = ({ isOpen, onClose, onGenerate, currentPlayerCount
   const handleGenerate = async () => {
     setIsGenerating(true);
     setErrorMsg(null);
+    onGenerateStart?.();
 
     try {
       const response = await fetch('/api/roscos.generate', {
@@ -48,6 +60,7 @@ export const GeneratorModal = ({ isOpen, onClose, onGenerate, currentPlayerCount
           throw new Error('Uno o más roscos están incompletos.');
         }
         onGenerate(result.roscos);
+        onGenerateSuccess?.();
         setTheme('');
         setDifficulty('MEDIO');
         onClose();
@@ -57,6 +70,7 @@ export const GeneratorModal = ({ isOpen, onClose, onGenerate, currentPlayerCount
     } catch (e) {
       const error = e instanceof Error ? e.message : 'Error al generar';
       setErrorMsg(`Error: ${error}`);
+      onGenerateError?.();
     } finally {
       setIsGenerating(false);
     }

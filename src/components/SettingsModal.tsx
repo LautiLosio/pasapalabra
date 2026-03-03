@@ -1,6 +1,6 @@
 'use client';
 
-import { Settings, Plus, X } from 'lucide-react';
+import { Settings, Plus, X, Smartphone } from 'lucide-react';
 import { InfoModal } from './InfoModal';
 import { useState } from 'react';
 import { MAX_PLAYERS, MIN_PLAYERS } from '@/game/types';
@@ -13,6 +13,8 @@ interface SettingsModalProps {
   playerNames: string[];
   onPlayerNamesChange: (names: string[]) => void;
   gameStarted: boolean;
+  hapticsEnabled: boolean;
+  onHapticsEnabledChange: (enabled: boolean) => void;
 }
 
 type PresetKey = '1' | '2' | '3' | '5' | 'otro';
@@ -44,6 +46,8 @@ export const SettingsModal = ({
   playerNames,
   onPlayerNamesChange,
   gameStarted,
+  hapticsEnabled,
+  onHapticsEnabledChange,
 }: SettingsModalProps) => {
   const [selectedPreset, setSelectedPreset] = useState<PresetKey>(() => getPresetKey(initialTime));
   const [minutes, setMinutes] = useState(() => Math.floor(initialTime / 60000));
@@ -264,8 +268,33 @@ export const SettingsModal = ({
             </button>
           </div>
         </div>
+
+        <div
+          className="bg-white/5 rounded-xl p-4"
+          style={{ boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.04), inset 0 -1px 1px rgba(0,0,0,0.08)' }}
+        >
+          <h3 className="font-bold text-white mb-3 flex items-center gap-2">
+            <Smartphone size={18} className="text-cyan-400" />
+            Haptic Feedback
+          </h3>
+          <button
+            onClick={() => onHapticsEnabledChange(!hapticsEnabled)}
+            className={`
+              w-full rounded-xl px-4 py-3 text-sm font-semibold flex items-center justify-between
+              ${hapticsEnabled
+                ? 'bg-cyan-500/20 text-cyan-300 btn-tinted'
+                : 'bg-white/10 text-white/70 hover:bg-white/15 btn-ghost'
+              }
+            `}
+          >
+            <span>{hapticsEnabled ? 'Activado' : 'Desactivado'}</span>
+            <span className="text-xs opacity-75">{hapticsEnabled ? 'ON' : 'OFF'}</span>
+          </button>
+          <p className="text-xs text-white/40 mt-2">
+            Vibración en botones, cambios de turno, snaps del rosco y estados del cronómetro.
+          </p>
+        </div>
       </div>
     </InfoModal>
   );
 };
-

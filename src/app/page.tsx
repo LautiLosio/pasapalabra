@@ -15,6 +15,37 @@ import { LeaderboardModal } from '@/components/LeaderboardModal';
 import { NotificationProvider, useNotification } from '@/components/NotificationProvider';
 import { usePasapalabraGame } from '@/game/usePasapalabraGame';
 
+const HAPTICS_STORAGE_KEY = 'pasapalabra-haptics-enabled';
+const HAPTIC_TAPS = {
+  buttonBaseline: { duration: 14, intensity: 0.28 },
+  illegal: { duration: 34, intensity: 0.78 },
+  snap: { duration: 24, intensity: 0.58 },
+  turnChange: { duration: 30, intensity: 0.62 },
+  timeout: { duration: 64, intensity: 1 },
+  winner: { duration: 46, intensity: 0.9 },
+  tie: { duration: 34, intensity: 0.62 },
+  panelToggle: { duration: 16, intensity: 0.35 },
+  soundToggle: { duration: 18, intensity: 0.4 },
+  openGenerator: { duration: 24, intensity: 0.55 },
+  openSettings: { duration: 18, intensity: 0.36 },
+  startGame: { duration: 28, intensity: 0.62 },
+  pause: { duration: 18, intensity: 0.4 },
+  resume: { duration: 26, intensity: 0.6 },
+  undo: { duration: 28, intensity: 0.52 },
+  actionCorrect: { duration: 38, intensity: 0.88 },
+  actionIncorrect: { duration: 50, intensity: 1 },
+  actionSkip: { duration: 22, intensity: 0.46 },
+  showLeaderboard: { duration: 18, intensity: 0.35 },
+  resetRequest: { duration: 24, intensity: 0.55 },
+  resetImmediate: { duration: 22, intensity: 0.65 },
+  resetConfirm: { duration: 56, intensity: 0.96 },
+  generatorStart: { duration: 20, intensity: 0.45 },
+  generatorSuccess: { duration: 34, intensity: 0.82 },
+  generatorError: { duration: 46, intensity: 0.95 },
+  settingsChange: { duration: 18, intensity: 0.35 },
+  hapticsToggle: { duration: 20, intensity: 0.48 },
+} as const;
+
 interface ConfirmModalProps {
   isOpen: boolean;
   onConfirm: () => void;
@@ -84,10 +115,44 @@ function GameContent() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const { showNotification } = useNotification();
   const { trigger: triggerHaptic, isSupported: isHapticsSupported } = useWebHaptics();
-  
+  const [hapticsEnabled, setHapticsEnabled] = useState(true);
+  const lastCarouselInteractionAt = useRef(0);
+  const lastSnapIndex = useRef<number | null>(null);
+  const lastTimerPulseSecond = useRef<number | null>(null);
+  const previousActivePlayerRef = useRef<number | null>(null);
+  const previousTimeLeftRef = useRef<number[]>([]);
+  const winnerHapticKeyRef = useRef<string | null>(null);
+  const lastSemanticHapticAt = useRef(0);
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem(HAPTICS_STORAGE_KEY);
+    if (stored === null) return;
+    setHapticsEnabled(stored !== 'false');
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(HAPTICS_STORAGE_KEY, String(hapticsEnabled));
+  }, [hapticsEnabled]);
+
+  const fireHaptic = useCallback((duration: number, intensity: number) => {
+    if (!isHapticsSupported || !hapticsEnabled) return;
+    void triggerHaptic(duration, { intensity });
+  }, [hapticsEnabled, isHapticsSupported, triggerHaptic]);
+
+  const fireSupportedHaptic = useCallback((duration: number, intensity: number) => {
+    if (!isHapticsSupported) return;
+    void triggerHaptic(duration, { intensity });
+  }, [isHapticsSupported, triggerHaptic]);
+
+  const fireSemanticTap = useCallback((tap: { duration: number; intensity: number }) => {
+    lastSemanticHapticAt.current = Date.now();
+    fireHaptic(tap.duration, tap.intensity);
+  }, [fireHaptic]);
+
   const handleIllegalAction = useCallback((message: string) => {
+    fireSemanticTap(HAPTIC_TAPS.illegal);
     showNotification(message, 'warning');
-  }, [showNotification]);
+  }, [fireSemanticTap, showNotification]);
 
   const {
     roscos,
@@ -146,14 +211,6 @@ function GameContent() {
   );
 
   const isUserDragging = useRef(false);
-  const lastCarouselInteractionAt = useRef(0);
-  const lastSnapIndex = useRef<number | null>(null);
-  const lastTimerPulseSecond = useRef<number | null>(null);
-
-  const fireHaptic = useCallback((input?: number | number[], intensity?: number) => {
-    if (!isHapticsSupported) return;
-    void triggerHaptic(input, intensity === undefined ? undefined : { intensity });
-  }, [isHapticsSupported, triggerHaptic]);
 
   // Generic haptic feedback for all button presses in the app
   useEffect(() => {
@@ -162,7 +219,13 @@ function GameContent() {
     const handlePointerDown = (event: PointerEvent) => {
       const target = event.target as Element | null;
       if (!target?.closest('button')) return;
-      fireHaptic(16, 0.35);
+      const pressedAt = Date.now();
+
+      // Delay baseline tap slightly so semantic click haptics can override it
+      window.setTimeout(() => {
+        if (lastSemanticHapticAt.current >= pressedAt) return;
+        fireHaptic(HAPTIC_TAPS.buttonBaseline.duration, HAPTIC_TAPS.buttonBaseline.intensity);
+      }, 120);
     };
 
     document.addEventListener('pointerdown', handlePointerDown, { capture: true, passive: true });
@@ -217,7 +280,7 @@ function GameContent() {
 
       // Only fire on user-driven scroll (drag/wheel), not automatic turn scrolling
       if (Date.now() - lastCarouselInteractionAt.current > 700) return;
-      fireHaptic([24], 0.6);
+      fireHaptic(HAPTIC_TAPS.snap.duration, HAPTIC_TAPS.snap.intensity);
     };
 
     emblaApi.on('settle', onSettle);
@@ -266,6 +329,51 @@ function GameContent() {
     isPanelCollapsed,
     fireHaptic,
   ]);
+
+  // Turn handoff feedback between players
+  useEffect(() => {
+    const previousPlayer = previousActivePlayerRef.current;
+    if (gameStarted && !winner && previousPlayer !== null && previousPlayer !== activePlayerIndex) {
+      fireHaptic(HAPTIC_TAPS.turnChange.duration, HAPTIC_TAPS.turnChange.intensity);
+    }
+    previousActivePlayerRef.current = activePlayerIndex;
+  }, [activePlayerIndex, gameStarted, winner, fireHaptic]);
+
+  // Strong timeout feedback when any player's clock reaches zero
+  useEffect(() => {
+    if (previousTimeLeftRef.current.length === 0) {
+      previousTimeLeftRef.current = [...timeLeft];
+      return;
+    }
+
+    timeLeft.forEach((current, index) => {
+      const previous = previousTimeLeftRef.current[index] ?? current;
+      if (previous > 0 && current <= 0) {
+        fireHaptic(HAPTIC_TAPS.timeout.duration, HAPTIC_TAPS.timeout.intensity);
+      }
+    });
+
+    previousTimeLeftRef.current = [...timeLeft];
+  }, [timeLeft, fireHaptic]);
+
+  // End-game feedback: victory or tie
+  useEffect(() => {
+    if (!winner || !leaderboard || leaderboard.length === 0) {
+      winnerHapticKeyRef.current = null;
+      return;
+    }
+
+    const key = `${winner}:${leaderboard.map((entry) => `${entry.name}-${entry.rank}-${entry.score}-${entry.errors}-${entry.timeLeft}`).join('|')}`;
+    if (winnerHapticKeyRef.current === key) return;
+    winnerHapticKeyRef.current = key;
+
+    const isTie = winner === 'Empate' || leaderboard.filter((entry) => entry.rank === 1).length > 1;
+    if (isTie) {
+      fireHaptic(HAPTIC_TAPS.tie.duration, HAPTIC_TAPS.tie.intensity);
+      return;
+    }
+    fireHaptic(HAPTIC_TAPS.winner.duration, HAPTIC_TAPS.winner.intensity);
+  }, [winner, leaderboard, fireHaptic]);
 
   // Scroll to active player when it changes
   // With trimSnaps, empty slides are removed from snap points
@@ -328,29 +436,121 @@ function GameContent() {
   }, [emblaApi, shouldUseCarousel, winner, leaderboard]);
 
 
+  const handlePanelToggle = useCallback(() => {
+    fireSemanticTap(HAPTIC_TAPS.panelToggle);
+    setIsPanelCollapsed((previous) => !previous);
+  }, [fireSemanticTap, setIsPanelCollapsed]);
+
+  const handleSoundToggle = useCallback(() => {
+    fireSemanticTap(HAPTIC_TAPS.soundToggle);
+    setSoundEnabled((previous) => !previous);
+  }, [fireSemanticTap, setSoundEnabled]);
+
+  const handleOpenGenerator = useCallback(() => {
+    fireSemanticTap(HAPTIC_TAPS.openGenerator);
+    setShowGeneratorModal(true);
+  }, [fireSemanticTap]);
+
+  const handleOpenSettings = useCallback(() => {
+    fireSemanticTap(HAPTIC_TAPS.openSettings);
+    setShowSettingsModal(true);
+  }, [fireSemanticTap]);
+
+  const handleStartWithHaptics = useCallback(() => {
+    fireSemanticTap(HAPTIC_TAPS.startGame);
+    startGame();
+  }, [fireSemanticTap, startGame]);
+
+  const handlePauseToggleWithHaptics = useCallback(() => {
+    fireSemanticTap(isPaused ? HAPTIC_TAPS.resume : HAPTIC_TAPS.pause);
+    handlePauseToggle();
+  }, [fireSemanticTap, isPaused, handlePauseToggle]);
+
+  const handleUndoWithHaptics = useCallback(() => {
+    if (!canUndo) return;
+    fireSemanticTap(HAPTIC_TAPS.undo);
+    handleUndo();
+  }, [canUndo, fireSemanticTap, handleUndo]);
+
+  const handleActionWithHaptics = useCallback((action: 'correct' | 'incorrect' | 'pasapalabra') => {
+    const canExecuteAction = gameStarted && !winner && (timeLeft[activePlayerIndex] ?? 0) > 0 && timerStartedThisTurn;
+
+    if (canExecuteAction) {
+      if (action === 'correct') fireSemanticTap(HAPTIC_TAPS.actionCorrect);
+      else if (action === 'incorrect') fireSemanticTap(HAPTIC_TAPS.actionIncorrect);
+      else fireSemanticTap(HAPTIC_TAPS.actionSkip);
+    }
+
+    handleAction(action);
+  }, [activePlayerIndex, fireSemanticTap, gameStarted, handleAction, timeLeft, timerStartedThisTurn, winner]);
+
+  const handleShowLeaderboard = useCallback(() => {
+    fireSemanticTap(HAPTIC_TAPS.showLeaderboard);
+    setShowLeaderboardModal(true);
+  }, [fireSemanticTap]);
+
   const handleResetRequest = useCallback(() => {
     if (gameStarted) {
+      fireSemanticTap(HAPTIC_TAPS.resetRequest);
       setShowResetConfirm(true);
-    } else {
-      resetGame();
+      return;
     }
-  }, [gameStarted, resetGame]);
+
+    fireSemanticTap(HAPTIC_TAPS.resetImmediate);
+    resetGame();
+  }, [fireSemanticTap, gameStarted, resetGame]);
 
   const handleResetConfirm = useCallback(() => {
+    fireSemanticTap(HAPTIC_TAPS.resetConfirm);
     setShowResetConfirm(false);
     resetGame();
-  }, [resetGame]);
+  }, [fireSemanticTap, resetGame]);
+
+  const handleGeneratorStart = useCallback(() => {
+    fireSemanticTap(HAPTIC_TAPS.generatorStart);
+  }, [fireSemanticTap]);
+
+  const handleGeneratorSuccess = useCallback(() => {
+    fireSemanticTap(HAPTIC_TAPS.generatorSuccess);
+  }, [fireSemanticTap]);
+
+  const handleGeneratorError = useCallback(() => {
+    fireSemanticTap(HAPTIC_TAPS.generatorError);
+  }, [fireSemanticTap]);
+
+  const handleSettingsTimeChange = useCallback((newTime: number) => {
+    fireSemanticTap(HAPTIC_TAPS.settingsChange);
+    updateInitialTime(newTime);
+  }, [fireSemanticTap, updateInitialTime]);
+
+  const handleSettingsPlayerNamesChange = useCallback((newNames: string[]) => {
+    fireSemanticTap(HAPTIC_TAPS.settingsChange);
+    setPlayerNames(newNames);
+  }, [fireSemanticTap, setPlayerNames]);
+
+  const handleHapticsEnabledChange = useCallback((enabled: boolean) => {
+    if (enabled === hapticsEnabled) return;
+
+    if (enabled) {
+      setHapticsEnabled(true);
+      fireSupportedHaptic(HAPTIC_TAPS.hapticsToggle.duration, HAPTIC_TAPS.hapticsToggle.intensity);
+      return;
+    }
+
+    fireSemanticTap(HAPTIC_TAPS.hapticsToggle);
+    setHapticsEnabled(false);
+  }, [fireSemanticTap, fireSupportedHaptic, hapticsEnabled]);
 
   return (
     <div className="h-screen gradient-bg font-[family-name:var(--font-nunito)] flex flex-col">
       <HeaderBar
         gameStarted={gameStarted}
         soundEnabled={soundEnabled}
-        onSoundToggle={() => setSoundEnabled(!soundEnabled)}
-        onGeneratorClick={() => setShowGeneratorModal(true)}
-        onStart={startGame}
+        onSoundToggle={handleSoundToggle}
+        onGeneratorClick={handleOpenGenerator}
+        onStart={handleStartWithHaptics}
         onReset={handleResetRequest}
-        onSettingsClick={() => setShowSettingsModal(true)}
+        onSettingsClick={handleOpenSettings}
       />
 
       <main className="flex-1 flex flex-col relative min-h-0">
@@ -435,7 +635,7 @@ function GameContent() {
 
         <ControlPanel
           isCollapsed={isPanelCollapsed}
-          onToggleCollapse={() => setIsPanelCollapsed(!isPanelCollapsed)}
+          onToggleCollapse={handlePanelToggle}
           winner={winner}
           leaderboard={leaderboard}
           gameStarted={gameStarted}
@@ -444,13 +644,13 @@ function GameContent() {
           isPaused={isPaused}
           timerStartedThisTurn={timerStartedThisTurn}
           canUndo={canUndo}
-          onPauseToggle={handlePauseToggle}
-          onUndo={handleUndo}
-          onAction={handleAction}
+          onPauseToggle={handlePauseToggleWithHaptics}
+          onUndo={handleUndoWithHaptics}
+          onAction={handleActionWithHaptics}
           onReset={handleResetRequest}
-          onShowLeaderboard={() => setShowLeaderboardModal(true)}
-          onStart={startGame}
-          onGeneratorClick={() => setShowGeneratorModal(true)}
+          onShowLeaderboard={handleShowLeaderboard}
+          onStart={handleStartWithHaptics}
+          onGeneratorClick={handleOpenGenerator}
         />
       </main>
 
@@ -459,16 +659,21 @@ function GameContent() {
         onClose={() => setShowGeneratorModal(false)}
         onGenerate={updateSourceData}
         currentPlayerCount={playerNames.length}
+        onGenerateStart={handleGeneratorStart}
+        onGenerateSuccess={handleGeneratorSuccess}
+        onGenerateError={handleGeneratorError}
       />
 
       <SettingsModal
         isOpen={showSettingsModal}
         onClose={() => setShowSettingsModal(false)}
         initialTime={initialTime}
-        onTimeChange={updateInitialTime}
+        onTimeChange={handleSettingsTimeChange}
         playerNames={playerNames}
-        onPlayerNamesChange={setPlayerNames}
+        onPlayerNamesChange={handleSettingsPlayerNamesChange}
         gameStarted={gameStarted}
+        hapticsEnabled={hapticsEnabled}
+        onHapticsEnabledChange={handleHapticsEnabledChange}
       />
 
       {leaderboard && leaderboard.length > 0 && (
