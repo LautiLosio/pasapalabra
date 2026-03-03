@@ -1,9 +1,9 @@
 'use client';
 
-import { Settings, Plus, X, Smartphone } from 'lucide-react';
-import { InfoModal } from './InfoModal';
-import { useState } from 'react';
 import { MAX_PLAYERS, MIN_PLAYERS } from '@/game/types';
+import { Plus, Settings, Smartphone, X } from 'lucide-react';
+import { useState } from 'react';
+import { InfoModal } from './InfoModal';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -273,7 +273,7 @@ export const SettingsModal = ({
           <button
             onClick={() => onHapticsEnabledChange(!hapticsEnabled)}
             className={`
-              w-full rounded-xl px-4 py-3 text-sm font-semibold flex items-center justify-between
+              w-full rounded-xl px-4 py-3 text-sm font-semibold flex items-center justify-center
               ${hapticsEnabled
                 ? 'bg-cyan-500/20 text-cyan-300 btn-tinted'
                 : 'bg-white/10 text-white/70 hover:bg-white/15 btn-ghost'
@@ -281,7 +281,6 @@ export const SettingsModal = ({
             `}
           >
             <span>{hapticsEnabled ? 'Activado' : 'Desactivado'}</span>
-            <span className="text-xs opacity-75">{hapticsEnabled ? 'ON' : 'OFF'}</span>
           </button>
           <p className="text-xs text-white/40 mt-2">
             Vibración en botones, cambios de turno, snaps del rosco y estados del cronómetro.

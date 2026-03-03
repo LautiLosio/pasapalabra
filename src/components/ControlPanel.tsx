@@ -193,7 +193,7 @@ export const ControlPanel = ({
                       btn-primary
                     "
                   >
-                    <Sparkles size={18} className="text-yellow-200" />
+                    <Sparkles size={18} className="currentColor" />
                     <span className="inline">Genera preguntas</span>
                   </button>{' '}
                   antes de jugar
