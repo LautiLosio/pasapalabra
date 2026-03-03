@@ -1,6 +1,6 @@
-import { Check, X, SkipForward, Trophy, ChevronDown, ChevronUp, Pause, Play, Undo2, AlertTriangle, Sparkles, List } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Question, LeaderboardEntry } from '@/game/types';
+import { LeaderboardEntry, Question } from '@/game/types';
+import { AlertTriangle, Check, ChevronDown, ChevronUp, List, Pause, Play, SkipForward, Sparkles, Trophy, Undo2, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 
 interface ControlPanelProps {
   isCollapsed: boolean;
@@ -51,7 +51,7 @@ export const ControlPanel = ({
       <button
         onClick={onToggleCollapse}
         className="
-          absolute -top-10 right-4 md:right-8 
+          absolute -top-8 right-4 md:right-8 
           px-4 py-2 rounded-t-xl 
           font-semibold text-xs uppercase tracking-wider 
           flex items-center gap-2 

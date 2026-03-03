@@ -58,6 +58,11 @@
   --rosco-size-limit: calc(var(--app-vh) * 45);
   --rosco-size: min(580px, 85vw, var(--rosco-size-limit));
   --rosco-spacing: 24px;
+  --rosco-letter-size: 48px;
+  --rosco-letter-orbit: 40%;
+  --rosco-outer-ring-inset: 24px;
+  --rosco-inner-ring-inset: 96px;
+  --rosco-glow-inset: -4px;
 }
 
 @theme inline {
@@ -423,8 +428,8 @@ body {
 
 /* Rosco letter sizing - responsive + GPU optimized */
 .rosco-letter {
-  width: clamp(38px, 11%, 50px);
-  height: clamp(38px, 11%, 50px);
+  width: var(--rosco-letter-size);
+  height: var(--rosco-letter-size);
   will-change: transform;
   contain: layout style;
   user-select: none;
@@ -436,6 +441,7 @@ body {
 /* Letter popover tooltip */
 .letter-popover {
   position: absolute;
+  z-index: 220;
   padding: 8px 12px;
   border-radius: 8px;
   background: var(--surface-1);

@@ -1,7 +1,7 @@
 'use client';
 
 import { Timer, Trophy, Skull } from 'lucide-react';
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { motion } from 'motion/react';
 import { Question, STATUS, getPlayerColor } from '@/game/types';
 import { formatTime } from '@/game/usePasapalabraGame';
@@ -20,6 +20,16 @@ interface RoscoCircleProps {
   gameStarted: boolean;
 }
 
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+const formatPercent = (value: number) => `${value.toFixed(4).replace(/\.?0+$/, '')}%`;
+const DEFAULT_ROSCO_GEOMETRY = {
+  letterOrbitPercent: 40,
+  letterSize: 48,
+  outerRingInset: 24,
+  innerRingInset: 96,
+  glowInset: -4,
+};
+
 export const RoscoCircle = ({
   data,
   active,
@@ -34,6 +44,7 @@ export const RoscoCircle = ({
 }: RoscoCircleProps) => {
   const isVisuallyActive = isPublicMode || active || hasWinner || !gameStarted;
   const roscoRef = useRef<HTMLDivElement>(null);
+  const [roscoSize, setRoscoSize] = useState(0);
   
   const correctCount = data.filter(i => i.status === STATUS.CORRECT).length;
   const incorrectCount = data.filter(i => i.status === STATUS.INCORRECT).length;
@@ -64,6 +75,77 @@ export const RoscoCircle = ({
     scale: animationState.scale * 0.98,
     opacity: animationState.opacity * 0.98,
   };
+
+  useEffect(() => {
+    const node = roscoRef.current;
+    if (!node) return;
+
+    const updateSize = (size: number) => {
+      setRoscoSize(prev => (Math.abs(prev - size) < 0.5 ? prev : size));
+    };
+
+    updateSize(node.getBoundingClientRect().width);
+
+    const observer = new ResizeObserver(entries => {
+      const entry = entries[0];
+      if (!entry) return;
+      updateSize(entry.contentRect.width);
+    });
+
+    observer.observe(node);
+
+    return () => observer.disconnect();
+  }, []);
+
+  const roscoGeometry = useMemo(() => {
+    // Keep SSR and first client render identical; switch to measured geometry after mount.
+    if (roscoSize <= 0) return DEFAULT_ROSCO_GEOMETRY;
+
+    const ringSize = roscoSize;
+    const totalLetters = Math.max(data.length, 1);
+
+    const letterSize = clamp(ringSize * 0.093, 33, 54);
+    const targetOverlap = clamp(ringSize * 0.004, 1.2, 2.8);
+    const targetSpacing = letterSize - targetOverlap;
+    const desiredRadius = (targetSpacing * totalLetters) / (2 * Math.PI);
+    // Tighten the outer gap on larger (desktop) roscos without noticeably changing mobile.
+    const desktopOrbitBoost = clamp((ringSize - 340) * 0.045, 0, 9);
+
+    const maxRadius = ringSize / 2 - letterSize / 2 - ringSize * 0.04;
+    const minRadius = ringSize / 2 - letterSize / 2 - ringSize * 0.12;
+    const letterRadius = clamp(desiredRadius + desktopOrbitBoost, minRadius, maxRadius);
+
+    const letterOuterEdge = letterRadius + letterSize / 2;
+    const letterInnerEdge = Math.max(0, letterRadius - letterSize / 2);
+
+    const outerRingGap = clamp(ringSize * 0.015 + desktopOrbitBoost * 0.35, 6, 14);
+    const innerRingGap = clamp(ringSize * 0.02, 8, 14);
+
+    const outerRingRadius = Math.min(ringSize / 2 - 2, letterOuterEdge + outerRingGap);
+    const innerRingRadius = Math.max(0, letterInnerEdge - innerRingGap);
+
+    const glowInset = -clamp(ringSize * 0.008, 3, 6);
+
+    return {
+      letterOrbitPercent: (letterRadius / ringSize) * 100,
+      letterSize,
+      outerRingInset: ringSize / 2 - outerRingRadius,
+      innerRingInset: ringSize / 2 - innerRingRadius,
+      glowInset,
+    };
+  }, [data.length, roscoSize]);
+
+  const roscoStyles = useMemo(
+    () =>
+      ({
+        '--rosco-letter-size': `${roscoGeometry.letterSize}px`,
+        '--rosco-letter-orbit': `${roscoGeometry.letterOrbitPercent}%`,
+        '--rosco-outer-ring-inset': `${roscoGeometry.outerRingInset}px`,
+        '--rosco-inner-ring-inset': `${roscoGeometry.innerRingInset}px`,
+        '--rosco-glow-inset': `${roscoGeometry.glowInset}px`,
+      } as CSSProperties),
+    [roscoGeometry]
+  );
   
   return (
     <motion.div
@@ -111,15 +193,20 @@ export const RoscoCircle = ({
       </div>
 
       {/* Rosco container - responsive sizing */}
-      <div ref={roscoRef} className="rosco-ring relative">
+      <div ref={roscoRef} className="rosco-ring relative" style={roscoStyles}>
         {/* Outer glow ring - GPU optimized */}
         <div 
           className={`
-            absolute inset-[-4px] rounded-full opacity-60
+            absolute rounded-full opacity-60
             bg-gradient-to-br ${ringColor}
             ${isVisuallyActive && active ? 'ring-glow-active' : ''}
           `}
-          style={{ filter: 'blur(8px)', transform: 'translateZ(0)', willChange: 'opacity' }}
+          style={{
+            inset: 'var(--rosco-glow-inset)',
+            filter: 'blur(8px)',
+            transform: 'translateZ(0)',
+            willChange: 'opacity',
+          }}
         />
         
         {/* Inner dark circle */}
@@ -127,20 +214,31 @@ export const RoscoCircle = ({
           className="absolute inset-0 rounded-full bg-surface-1"
           style={{ boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.3), inset 0 -1px 2px rgba(255,255,255,0.03)' }}
         />
+
+        {/* Decorative outer ring */}
+        <div
+          className="absolute rounded-full border opacity-60"
+          style={{
+            inset: 'var(--rosco-outer-ring-inset)',
+            borderColor: 'rgba(255,255,255,0.12)',
+          }}
+        />
         
         {/* Decorative inner ring */}
         <div 
-          className="absolute inset-22 rounded-full opacity-30"
-          style={{ boxShadow: 'inset 0 0px 2px 0px rgba(255,255,255,1)' }}
+          className="absolute rounded-full opacity-30"
+          style={{
+            inset: 'var(--rosco-inner-ring-inset)',
+            boxShadow: 'inset 0 0px 2px 0px rgba(255,255,255,1)',
+          }}
         />
         
         {/* Letters */}
         {data.map((item, index) => {
           const total = data.length;
           const angle = (index / total) * 2 * Math.PI - Math.PI / 2;
-          // 40% radius keeps letters well inside the ring
-          const xPercent = 50 + 40 * Math.cos(angle);
-          const yPercent = 50 + 40 * Math.sin(angle);
+          const xPercent = 50 + roscoGeometry.letterOrbitPercent * Math.cos(angle);
+          const yPercent = 50 + roscoGeometry.letterOrbitPercent * Math.sin(angle);
 
           const isCurrent = active && index === activeIndex;
           
@@ -174,13 +272,13 @@ export const RoscoCircle = ({
               transition={{ type: 'spring', stiffness: 300, damping: 18, mass: 0.6 }}
               className={`
                 rosco-letter absolute rounded-full flex items-center justify-center 
-                text-xl font-bold hover:z-[100] border border-white/10
+                text-lg md:text-xl font-bold hover:z-[100] border border-white/10
                 ${bgStyle} ${glowStyle}
                 ${isCurrent ? 'z-20 !bg-gradient-to-br !from-yellow-400 !to-amber-500 !text-slate-900 letter-active-glow' : 'z-10'}
               `}
               style={{
-                left: `${xPercent}%`,
-                top: `${yPercent}%`,
+                left: formatPercent(xPercent),
+                top: formatPercent(yPercent),
                 x: '-50%',
                 y: '-50%',
                 boxShadow: isCurrent ? 'inset 0 1px 2px rgba(255,255,255,0.3), inset 0 -1px 2px rgba(0,0,0,0.2)' : shadowStyle,
@@ -190,7 +288,7 @@ export const RoscoCircle = ({
               {/* Tooltip - CSS hover */}
               <div className={`letter-popover letter-popover--${showBelow ? 'below' : 'above'} letter-popover--${hAlign}`}>
                 <span className="text-white/50 text-sm uppercase tracking-wider">
-                  {item.condition === 'starts' ? `Empieza ${item.letter}` : `Contiene ${item.letter}`}
+                  {item.condition || `Empieza por ${item.letter}`}
                 </span>
                 <span className="font-bold text-white text-base">{item.answer}</span>
                 <span className="text-white/70 text-sm leading-relaxed">{item.description}</span>
