@@ -5,6 +5,7 @@ import useEmblaCarousel from 'embla-carousel-react';
 import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures';
 import { motion, AnimatePresence } from 'motion/react';
 import { AlertTriangle } from 'lucide-react';
+import { useWebHaptics } from 'web-haptics/react';
 import { HeaderBar } from '@/components/HeaderBar';
 import { RoscoCircle } from '@/components/RoscoCircle';
 import { ControlPanel } from '@/components/ControlPanel';
@@ -82,6 +83,7 @@ function GameContent() {
   const [showLeaderboardModal, setShowLeaderboardModal] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const { showNotification } = useNotification();
+  const { trigger: triggerHaptic, isSupported: isHapticsSupported } = useWebHaptics();
   
   const handleIllegalAction = useCallback((message: string) => {
     showNotification(message, 'warning');
@@ -144,6 +146,31 @@ function GameContent() {
   );
 
   const isUserDragging = useRef(false);
+  const lastCarouselInteractionAt = useRef(0);
+  const lastSnapIndex = useRef<number | null>(null);
+  const lastTimerPulseSecond = useRef<number | null>(null);
+
+  const fireHaptic = useCallback((input?: number | number[], intensity?: number) => {
+    if (!isHapticsSupported) return;
+    void triggerHaptic(input, intensity === undefined ? undefined : { intensity });
+  }, [isHapticsSupported, triggerHaptic]);
+
+  // Generic haptic feedback for all button presses in the app
+  useEffect(() => {
+    if (!isHapticsSupported) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Element | null;
+      if (!target?.closest('button')) return;
+      fireHaptic(16, 0.35);
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown, { capture: true, passive: true });
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown, true);
+    };
+  }, [isHapticsSupported, fireHaptic]);
 
   // Track user drag to prevent programmatic scrolling during interaction
   useEffect(() => {
@@ -151,6 +178,7 @@ function GameContent() {
 
     const onPointerDown = () => {
       isUserDragging.current = true;
+      lastCarouselInteractionAt.current = Date.now();
     };
 
     const onPointerUp = () => {
@@ -159,14 +187,85 @@ function GameContent() {
       }, 50);
     };
 
+    const onWheel = () => {
+      lastCarouselInteractionAt.current = Date.now();
+    };
+
     emblaApi.on('pointerDown', onPointerDown);
     emblaApi.on('pointerUp', onPointerUp);
+    emblaContainerRef.current?.addEventListener('wheel', onWheel, { passive: true });
 
     return () => {
       emblaApi.off('pointerDown', onPointerDown);
       emblaApi.off('pointerUp', onPointerUp);
+      emblaContainerRef.current?.removeEventListener('wheel', onWheel);
     };
   }, [emblaApi, shouldUseCarousel]);
+
+  // Haptic feedback when a rosco snaps to center after user scroll interaction
+  useEffect(() => {
+    if (!emblaApi || !shouldUseCarousel) return;
+
+    lastSnapIndex.current = emblaApi.selectedScrollSnap();
+
+    const onSettle = () => {
+      const currentSnap = emblaApi.selectedScrollSnap();
+      const previousSnap = lastSnapIndex.current;
+      lastSnapIndex.current = currentSnap;
+
+      if (previousSnap === null || previousSnap === currentSnap) return;
+
+      // Only fire on user-driven scroll (drag/wheel), not automatic turn scrolling
+      if (Date.now() - lastCarouselInteractionAt.current > 700) return;
+      fireHaptic([24], 0.6);
+    };
+
+    emblaApi.on('settle', onSettle);
+    emblaApi.on('reInit', onSettle);
+
+    return () => {
+      emblaApi.off('settle', onSettle);
+      emblaApi.off('reInit', onSettle);
+    };
+  }, [emblaApi, shouldUseCarousel, fireHaptic]);
+
+  // Last 10 seconds: increasing haptic urgency until timer reaches 0
+  useEffect(() => {
+    const activeTime = timeLeft[activePlayerIndex] ?? 0;
+    const isRunning = gameStarted && !winner && !isPaused && !isPanelCollapsed;
+
+    if (!isRunning) {
+      lastTimerPulseSecond.current = null;
+      return;
+    }
+
+    if (activeTime <= 0) return;
+
+    const secondBucket = Math.ceil(activeTime / 1000);
+
+    if (secondBucket > 10) {
+      lastTimerPulseSecond.current = null;
+      return;
+    }
+
+    if (lastTimerPulseSecond.current === secondBucket) return;
+    lastTimerPulseSecond.current = secondBucket;
+
+    // 10 -> soft, 1 -> strongest
+    const progress = (11 - secondBucket) / 10;
+    const intensity = 0.35 + progress * 0.65;
+    const duration = Math.round(20 + progress * 60);
+
+    fireHaptic(duration, Math.min(1, intensity));
+  }, [
+    timeLeft,
+    activePlayerIndex,
+    gameStarted,
+    winner,
+    isPaused,
+    isPanelCollapsed,
+    fireHaptic,
+  ]);
 
   // Scroll to active player when it changes
   // With trimSnaps, empty slides are removed from snap points
