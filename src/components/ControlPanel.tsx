@@ -52,11 +52,12 @@ export const ControlPanel = ({
         onClick={onToggleCollapse}
         className="
           absolute -top-10 right-4 md:right-8 
-          glass-light px-4 py-2 rounded-t-xl 
+          px-4 py-2 rounded-t-xl 
           font-semibold text-xs uppercase tracking-wider 
           flex items-center gap-2 
-          text-white/60 hover:text-white
-          btn-ghost z-20
+          bg-[#19182A] hover:bg-[#19182A]
+          text-white
+          btn-primary z-20
         "
         title={isCollapsed ? 'Mostrar Respuestas (I)' : 'Ocultar Respuestas (I)'}
       >
