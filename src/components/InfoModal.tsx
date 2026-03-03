@@ -31,7 +31,7 @@ export const InfoModal = ({ isOpen, onClose, title, subtitle, icon, children }: 
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             onClick={(e) => e.stopPropagation()}
-            className="glass-light w-full max-w-md rounded-3xl p-6 surface-neu max-h-[85vh] overflow-y-auto"
+            className="glass-light w-full max-w-md rounded-3xl p-6 surface-neu max-h-[85dvh] overflow-y-auto"
           >
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
@@ -94,4 +94,3 @@ export const ShortcutRow = ({ keys, description }: ShortcutRowProps) => (
     </div>
   </div>
 );
-

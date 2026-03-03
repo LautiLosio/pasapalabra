@@ -50,8 +50,13 @@
   --border: rgba(255, 255, 255, 0.08);
   --border-bright: rgba(255, 255, 255, 0.15);
   
-  /* Rosco sizing - responsive */
-  --rosco-size: min(580px, 85vw, 45vh);
+  /* App shell viewport sync (set from JS on mobile) */
+  --app-height: 100vh;
+  --app-vh: 1vh;
+
+  /* Rosco sizing - responsive and layout-aware */
+  --rosco-size-limit: calc(var(--app-vh) * 45);
+  --rosco-size: min(580px, 85vw, var(--rosco-size-limit));
   --rosco-spacing: 24px;
 }
 
@@ -70,10 +75,24 @@
   --font-body: var(--font-nunito);
 }
 
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-body), system-ui, sans-serif;
+}
+
+.app-shell {
+  height: var(--app-height);
+  min-height: var(--app-height);
+  max-height: var(--app-height);
+  overflow: hidden;
 }
 
 /* Gradient background pattern */

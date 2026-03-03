@@ -123,6 +123,12 @@ function GameContent() {
   const previousTimeLeftRef = useRef<number[]>([]);
   const winnerHapticKeyRef = useRef<string | null>(null);
   const lastSemanticHapticAt = useRef(0);
+  const appShellRef = useRef<HTMLDivElement>(null);
+  const headerContainerRef = useRef<HTMLDivElement>(null);
+  const panelContainerRef = useRef<HTMLDivElement>(null);
+  const layoutSyncRafRef = useRef<number | null>(null);
+  const lastViewportHeightRef = useRef(0);
+  const lastRoscoLimitRef = useRef(0);
 
   useEffect(() => {
     const stored = window.localStorage.getItem(HAPTICS_STORAGE_KEY);
@@ -211,6 +217,89 @@ function GameContent() {
   );
 
   const isUserDragging = useRef(false);
+
+  const syncViewportVars = useCallback(() => {
+    const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+    const appHeight = Math.max(320, Math.round(viewportHeight));
+
+    if (lastViewportHeightRef.current === appHeight) return;
+    lastViewportHeightRef.current = appHeight;
+
+    const rootStyle = document.documentElement.style;
+    rootStyle.setProperty('--app-height', `${appHeight}px`);
+    rootStyle.setProperty('--app-vh', `${(appHeight / 100).toFixed(4)}px`);
+  }, []);
+
+  const syncRoscoSizeLimit = useCallback(() => {
+    const shellHeight = appShellRef.current?.clientHeight ?? 0;
+    if (shellHeight <= 0) return;
+
+    const headerHeight = headerContainerRef.current?.offsetHeight ?? 0;
+    const panelHeight = panelContainerRef.current?.offsetHeight ?? 0;
+    const middleHeight = shellHeight - headerHeight - panelHeight;
+    const ringLimit = Math.max(220, Math.floor(middleHeight - 120));
+
+    if (lastRoscoLimitRef.current === ringLimit) return;
+    lastRoscoLimitRef.current = ringLimit;
+    document.documentElement.style.setProperty('--rosco-size-limit', `${ringLimit}px`);
+  }, []);
+
+  const scheduleLayoutSync = useCallback(() => {
+    if (layoutSyncRafRef.current !== null) return;
+    layoutSyncRafRef.current = window.requestAnimationFrame(() => {
+      layoutSyncRafRef.current = null;
+      syncViewportVars();
+      syncRoscoSizeLimit();
+    });
+  }, [syncRoscoSizeLimit, syncViewportVars]);
+
+  useEffect(() => {
+    scheduleLayoutSync();
+
+    const handleViewportChange = () => {
+      scheduleLayoutSync();
+    };
+
+    window.addEventListener('resize', handleViewportChange, { passive: true });
+    window.addEventListener('orientationchange', handleViewportChange, { passive: true });
+
+    const viewport = window.visualViewport;
+    viewport?.addEventListener('resize', handleViewportChange, { passive: true });
+    viewport?.addEventListener('scroll', handleViewportChange, { passive: true });
+
+    return () => {
+      window.removeEventListener('resize', handleViewportChange);
+      window.removeEventListener('orientationchange', handleViewportChange);
+      viewport?.removeEventListener('resize', handleViewportChange);
+      viewport?.removeEventListener('scroll', handleViewportChange);
+    };
+  }, [scheduleLayoutSync]);
+
+  useEffect(() => {
+    if (typeof ResizeObserver === 'undefined') return;
+
+    const observer = new ResizeObserver(() => {
+      scheduleLayoutSync();
+    });
+
+    const nodes = [appShellRef.current, headerContainerRef.current, panelContainerRef.current];
+    nodes.forEach((node) => {
+      if (node) observer.observe(node);
+    });
+    scheduleLayoutSync();
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [scheduleLayoutSync]);
+
+  useEffect(() => {
+    return () => {
+      if (layoutSyncRafRef.current === null) return;
+      window.cancelAnimationFrame(layoutSyncRafRef.current);
+      layoutSyncRafRef.current = null;
+    };
+  }, []);
 
   // Generic haptic feedback for all button presses in the app
   useEffect(() => {
@@ -542,16 +631,18 @@ function GameContent() {
   }, [fireSemanticTap, fireSupportedHaptic, hapticsEnabled]);
 
   return (
-    <div className="h-screen gradient-bg font-[family-name:var(--font-nunito)] flex flex-col">
-      <HeaderBar
-        gameStarted={gameStarted}
-        soundEnabled={soundEnabled}
-        onSoundToggle={handleSoundToggle}
-        onGeneratorClick={handleOpenGenerator}
-        onStart={handleStartWithHaptics}
-        onReset={handleResetRequest}
-        onSettingsClick={handleOpenSettings}
-      />
+    <div ref={appShellRef} className="app-shell gradient-bg font-[family-name:var(--font-nunito)] flex flex-col">
+      <div ref={headerContainerRef} className="shrink-0">
+        <HeaderBar
+          gameStarted={gameStarted}
+          soundEnabled={soundEnabled}
+          onSoundToggle={handleSoundToggle}
+          onGeneratorClick={handleOpenGenerator}
+          onStart={handleStartWithHaptics}
+          onReset={handleResetRequest}
+          onSettingsClick={handleOpenSettings}
+        />
+      </div>
 
       <main className="flex-1 flex flex-col relative min-h-0">
         {/* Rosco container - always use carousel for 2+ players */}
@@ -633,25 +724,27 @@ function GameContent() {
           )}
         </section>
 
-        <ControlPanel
-          isCollapsed={isPanelCollapsed}
-          onToggleCollapse={handlePanelToggle}
-          winner={winner}
-          leaderboard={leaderboard}
-          gameStarted={gameStarted}
-          currentLetterData={currentLetterData}
-          isCurrentDataValid={isCurrentDataValid}
-          isPaused={isPaused}
-          timerStartedThisTurn={timerStartedThisTurn}
-          canUndo={canUndo}
-          onPauseToggle={handlePauseToggleWithHaptics}
-          onUndo={handleUndoWithHaptics}
-          onAction={handleActionWithHaptics}
-          onReset={handleResetRequest}
-          onShowLeaderboard={handleShowLeaderboard}
-          onStart={handleStartWithHaptics}
-          onGeneratorClick={handleOpenGenerator}
-        />
+        <div ref={panelContainerRef} className="shrink-0">
+          <ControlPanel
+            isCollapsed={isPanelCollapsed}
+            onToggleCollapse={handlePanelToggle}
+            winner={winner}
+            leaderboard={leaderboard}
+            gameStarted={gameStarted}
+            currentLetterData={currentLetterData}
+            isCurrentDataValid={isCurrentDataValid}
+            isPaused={isPaused}
+            timerStartedThisTurn={timerStartedThisTurn}
+            canUndo={canUndo}
+            onPauseToggle={handlePauseToggleWithHaptics}
+            onUndo={handleUndoWithHaptics}
+            onAction={handleActionWithHaptics}
+            onReset={handleResetRequest}
+            onShowLeaderboard={handleShowLeaderboard}
+            onStart={handleStartWithHaptics}
+            onGeneratorClick={handleOpenGenerator}
+          />
+        </div>
       </main>
 
       <GeneratorModal

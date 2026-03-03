@@ -391,7 +391,7 @@ export const LeaderboardModal = ({ isOpen, onClose, leaderboard, winner }: Leade
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             onClick={(e) => e.stopPropagation()}
-            className="glass-light w-full max-w-md rounded-3xl surface-neu max-h-[85vh] flex flex-col overflow-hidden"
+            className="glass-light w-full max-w-md rounded-3xl surface-neu max-h-[85dvh] flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="flex justify-between items-center p-6 pb-4 flex-shrink-0">
