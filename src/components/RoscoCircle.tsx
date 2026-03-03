@@ -1,10 +1,10 @@
 'use client';
 
-import { Timer, Trophy, Skull } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { motion } from 'motion/react';
 import { Question, STATUS, getPlayerColor } from '@/game/types';
 import { formatTime } from '@/game/usePasapalabraGame';
+import { Skull, Timer, Trophy } from 'lucide-react';
+import { motion } from 'motion/react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { EditablePlayerName } from './EditablePlayerName';
 
 interface RoscoCircleProps {
@@ -104,27 +104,41 @@ export const RoscoCircle = ({
     const ringSize = roscoSize;
     const totalLetters = Math.max(data.length, 1);
 
-    const letterSize = clamp(ringSize * 0.093, 33, 54);
-    const targetOverlap = clamp(ringSize * 0.004, 1.2, 2.8);
+    // Artist-friendly sizing
+    const letterSizeRatio = 0.12; // % of ring size
+    const letterSize = clamp(ringSize * letterSizeRatio, 33, 60);
+    
+    const letterOverlapRatio = 0.004; // How much letters overlap (smaller = tighter)
+    const targetOverlap = clamp(ringSize * letterOverlapRatio, 1.2, 3);
     const targetSpacing = letterSize - targetOverlap;
     const desiredRadius = (targetSpacing * totalLetters) / (2 * Math.PI);
-    // Tighten the outer gap on larger (desktop) roscos without noticeably changing mobile.
-    const desktopOrbitBoost = clamp((ringSize - 340) * 0.045, 0, 9);
+    
+    const desktopBoostStrength = 0.045; // Extra tightness on desktop
+    const desktopOrbitBoost = clamp((ringSize - 340) * desktopBoostStrength, 0, 9);
 
-    const maxRadius = ringSize / 2 - letterSize / 2 - ringSize * 0.04;
-    const minRadius = ringSize / 2 - letterSize / 2 - ringSize * 0.12;
+    // Letter orbit constraints
+    const outerLetterMargin = 0.04; // Distance from ring edge to letter outer edge
+    const innerLetterMargin = 0.12; // Distance from ring center to letter inner edge
+    const maxRadius = ringSize / 2 - letterSize / 2 - ringSize * outerLetterMargin;
+    const minRadius = ringSize / 2 - letterSize / 2 - ringSize * innerLetterMargin;
     const letterRadius = clamp(desiredRadius + desktopOrbitBoost, minRadius, maxRadius);
 
     const letterOuterEdge = letterRadius + letterSize / 2;
     const letterInnerEdge = Math.max(0, letterRadius - letterSize / 2);
 
-    const outerRingGap = clamp(ringSize * 0.015 + desktopOrbitBoost * 0.35, 6, 14);
-    const innerRingGap = clamp(ringSize * 0.02, 8, 14);
+    // Ring decorations
+    const outerRingGapRatio = 0;
+    const outerRingGap = clamp(ringSize * outerRingGapRatio + desktopOrbitBoost * 0.35, 6, 14);
+    
+    const innerRingGapRatio = 0.015;
+    const innerRingGap = clamp(ringSize * innerRingGapRatio, 8, 14);
 
     const outerRingRadius = Math.min(ringSize / 2 - 2, letterOuterEdge + outerRingGap);
     const innerRingRadius = Math.max(0, letterInnerEdge - innerRingGap);
 
-    const glowInset = -clamp(ringSize * 0.008, 3, 6);
+    // Glow effect
+    const glowStrength = 0.01; // Glow blur intensity
+    const glowInset = -clamp(ringSize * glowStrength, 3, 6);
 
     return {
       letterOrbitPercent: (letterRadius / ringSize) * 100,
