@@ -17,25 +17,19 @@ interface SettingsModalProps {
   onHapticsEnabledChange: (enabled: boolean) => void;
 }
 
-type PresetKey = '1' | '2' | '3' | '5' | 'otro';
-
 const presetTimes = [
-  { label: '1 min', value: 60000 },
-  { label: '2 min', value: 120000 },
-  { label: '3 min', value: 180000 },
-  { label: '5 min', value: 300000 },
+  { key: '1', label: '1 min', value: 60000 },
+  { key: '2', label: '2 min', value: 120000 },
+  { key: '5', label: '5 min', value: 300000 },
 ] as const;
+
+type PresetKey = (typeof presetTimes)[number]['key'] | 'otro';
 
 const getSelectedPreset = (time: number) => presetTimes.find(preset => preset.value === time);
 
 const getPresetKey = (time: number): PresetKey => {
   const preset = getSelectedPreset(time);
-  if (!preset) return 'otro';
-  if (preset.label === '1 min') return '1';
-  if (preset.label === '2 min') return '2';
-  if (preset.label === '3 min') return '3';
-  if (preset.label === '5 min') return '5';
-  return 'otro';
+  return preset?.key ?? 'otro';
 };
 
 export const SettingsModal = ({
@@ -117,17 +111,16 @@ export const SettingsModal = ({
               <label className="text-xs text-white/50 mb-2 block">Tiempo:</label>
               <div className="flex flex-wrap gap-2">
                 {presetTimes.map((preset) => {
-                  const presetKey = preset.label === '1 min' ? '1' : preset.label === '2 min' ? '2' : preset.label === '3 min' ? '3' : '5';
                   return (
                     <button
                       key={preset.value}
                       onClick={() => {
-                        setSelectedPreset(presetKey);
+                        setSelectedPreset(preset.key);
                         onTimeChange(preset.value);
                       }}
                       className={`
                         px-3 py-1.5 rounded-lg text-xs font-semibold
-                        ${selectedPreset === presetKey
+                        ${selectedPreset === preset.key
                           ? 'bg-blue-500 text-white btn-neu'
                           : 'bg-white/10 text-white/70 hover:bg-white/15 hover:text-white btn-ghost'
                         }
